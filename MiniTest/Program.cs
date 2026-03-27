@@ -639,7 +639,7 @@ namespace MiniTest
             return result.ToString();
         }
         
-        // Генерация для второй вкладки (пока аналогична первой)
+        // Генерация для второй вкладки (Ввод-вывод)
         private string GenerateSCL2()
         {
             StringBuilder result = new StringBuilder();
@@ -660,32 +660,233 @@ namespace MiniTest
                 
                 int totalRecords = 0;
                 
-                foreach (var device in devices)
+                // Проходим по строкам от startRow до endRow
+                for (int rowNum = startRow; rowNum <= endRow; rowNum++)
                 {
-                    result.AppendLine($"// {device.Comment}");
+                    IRow row = sheet.GetRow(rowNum);
+                    if (row == null) continue;
                     
-                    for (int rowNum = startRow; rowNum <= endRow; rowNum++)
+                    // Получаем значение из столбца A (индекс 0) - CfgPlace
+                    CellValueInfo placeInfo = GetCellValueInfo(row.GetCell(0));
+                    // Пропускаем пустые строки
+                    if (string.IsNullOrEmpty(placeInfo.Value)) continue;
+                    
+                    string placeFormatted = placeInfo.IsNumeric ? placeInfo.Value : $"\"{placeInfo.Value}\"";
+                    
+                    // Doliv: Dev[столбец N(13)], CfgType из столбца M(12)
+                    CellValueInfo dolivIndexInfo = GetCellValueInfo(row.GetCell(13));
+                    CellValueInfo dolivTypeInfo = GetCellValueInfo(row.GetCell(12));
+                    if (!string.IsNullOrEmpty(dolivIndexInfo.Value) && !string.IsNullOrEmpty(dolivTypeInfo.Value))
                     {
-                        IRow row = sheet.GetRow(rowNum);
-                        if (row == null) continue;
-                        
-                        CellValueInfo placeInfo = GetCellValueInfo(row.GetCell(0));
-                        if (string.IsNullOrEmpty(placeInfo.Value)) continue;
-                        
-                        CellValueInfo typeInfo = GetCellValueInfo(row.GetCell(device.FirstCol));
-                        CellValueInfo nameInfo = GetCellValueInfo(row.GetCell(device.SecondCol));
-                        
-                        if (string.IsNullOrEmpty(typeInfo.Value) || string.IsNullOrEmpty(nameInfo.Value))
-                            continue;
-                        
-                        string placeFormatted = placeInfo.IsNumeric ? placeInfo.Value : $"\"{placeInfo.Value}\"";
-                        string typeFormatted = typeInfo.IsNumeric ? typeInfo.Value : $"\"{typeInfo.Value}\"";
-                        string nameFormatted = nameInfo.IsNumeric ? nameInfo.Value : $"\"{nameInfo.Value}\"";
-                        
-                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgType := {typeFormatted};");
-                        
-                        totalRecords++;
+                        string dolivIndexFormatted = dolivIndexInfo.IsNumeric ? dolivIndexInfo.Value : $"\"{dolivIndexInfo.Value}\"";
+                        string dolivTypeFormatted = dolivTypeInfo.IsNumeric ? dolivTypeInfo.Value : $"\"{dolivTypeInfo.Value}\"";
+                        result.AppendLine($"\"Doliv\".Dev[{dolivIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Doliv\".Dev[{dolivIndexFormatted}].CfgType := {dolivTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Tmpr: Dev[столбец P(15)], CfgType из столбца O(14)
+                    CellValueInfo tmprIndexInfo = GetCellValueInfo(row.GetCell(15));
+                    CellValueInfo tmprTypeInfo = GetCellValueInfo(row.GetCell(14));
+                    if (!string.IsNullOrEmpty(tmprIndexInfo.Value) && !string.IsNullOrEmpty(tmprTypeInfo.Value))
+                    {
+                        string tmprIndexFormatted = tmprIndexInfo.IsNumeric ? tmprIndexInfo.Value : $"\"{tmprIndexInfo.Value}\"";
+                        string tmprTypeFormatted = tmprTypeInfo.IsNumeric ? tmprTypeInfo.Value : $"\"{tmprTypeInfo.Value}\"";
+                        result.AppendLine($"\"Tmpr\".Dev[{tmprIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Tmpr\".Dev[{tmprIndexFormatted}].CfgType := {tmprTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Cover: Dev[столбец R(17)], CfgType из столбца Q(16)
+                    CellValueInfo coverIndexInfo = GetCellValueInfo(row.GetCell(17));
+                    CellValueInfo coverTypeInfo = GetCellValueInfo(row.GetCell(16));
+                    if (!string.IsNullOrEmpty(coverIndexInfo.Value) && !string.IsNullOrEmpty(coverTypeInfo.Value))
+                    {
+                        string coverIndexFormatted = coverIndexInfo.IsNumeric ? coverIndexInfo.Value : $"\"{coverIndexInfo.Value}\"";
+                        string coverTypeFormatted = coverTypeInfo.IsNumeric ? coverTypeInfo.Value : $"\"{coverTypeInfo.Value}\"";
+                        result.AppendLine($"\"Cover\".Dev[{coverIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Cover\".Dev[{coverIndexFormatted}].CfgType := {coverTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Jr: Dev[столбец T(19)], CfgType из столбца S(18)
+                    CellValueInfo jrIndexInfo = GetCellValueInfo(row.GetCell(19));
+                    CellValueInfo jrTypeInfo = GetCellValueInfo(row.GetCell(18));
+                    if (!string.IsNullOrEmpty(jrIndexInfo.Value) && !string.IsNullOrEmpty(jrTypeInfo.Value))
+                    {
+                        string jrIndexFormatted = jrIndexInfo.IsNumeric ? jrIndexInfo.Value : $"\"{jrIndexInfo.Value}\"";
+                        string jrTypeFormatted = jrTypeInfo.IsNumeric ? jrTypeInfo.Value : $"\"{jrTypeInfo.Value}\"";
+                        result.AppendLine($"\"Jr\".Dev[{jrIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Jr\".Dev[{jrIndexFormatted}].CfgType := {jrTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Mixer: Dev[столбец V(21)], CfgType из столбца U(20)
+                    CellValueInfo mixerIndexInfo = GetCellValueInfo(row.GetCell(21));
+                    CellValueInfo mixerTypeInfo = GetCellValueInfo(row.GetCell(20));
+                    if (!string.IsNullOrEmpty(mixerIndexInfo.Value) && !string.IsNullOrEmpty(mixerTypeInfo.Value))
+                    {
+                        string mixerIndexFormatted = mixerIndexInfo.IsNumeric ? mixerIndexInfo.Value : $"\"{mixerIndexInfo.Value}\"";
+                        string mixerTypeFormatted = mixerTypeInfo.IsNumeric ? mixerTypeInfo.Value : $"\"{mixerTypeInfo.Value}\"";
+                        result.AppendLine($"\"Mixer\".Dev[{mixerIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Mixer\".Dev[{mixerIndexFormatted}].CfgType := {mixerTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Vip: Dev[столбец X(23)], CfgType из столбца W(22)
+                    CellValueInfo vipIndexInfo = GetCellValueInfo(row.GetCell(23));
+                    CellValueInfo vipTypeInfo = GetCellValueInfo(row.GetCell(22));
+                    if (!string.IsNullOrEmpty(vipIndexInfo.Value) && !string.IsNullOrEmpty(vipTypeInfo.Value))
+                    {
+                        string vipIndexFormatted = vipIndexInfo.IsNumeric ? vipIndexInfo.Value : $"\"{vipIndexInfo.Value}\"";
+                        string vipTypeFormatted = vipTypeInfo.IsNumeric ? vipTypeInfo.Value : $"\"{vipTypeInfo.Value}\"";
+                        result.AppendLine($"\"Vip\".Dev[{vipIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Vip\".Dev[{vipIndexFormatted}].CfgType := {vipTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Filtr: Dev[столбец Z(25)], CfgType из столбца Y(24)
+                    CellValueInfo filtrIndexInfo = GetCellValueInfo(row.GetCell(25));
+                    CellValueInfo filtrTypeInfo = GetCellValueInfo(row.GetCell(24));
+                    if (!string.IsNullOrEmpty(filtrIndexInfo.Value) && !string.IsNullOrEmpty(filtrTypeInfo.Value))
+                    {
+                        string filtrIndexFormatted = filtrIndexInfo.IsNumeric ? filtrIndexInfo.Value : $"\"{filtrIndexInfo.Value}\"";
+                        string filtrTypeFormatted = filtrTypeInfo.IsNumeric ? filtrTypeInfo.Value : $"\"{filtrTypeInfo.Value}\"";
+                        result.AppendLine($"\"Filtr\".Dev[{filtrIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Filtr\".Dev[{filtrIndexFormatted}].CfgType := {filtrTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Doser: Dev[столбец AB(27)], CfgType из столбца AA(26)
+                    CellValueInfo doserIndexInfo = GetCellValueInfo(row.GetCell(27));
+                    CellValueInfo doserTypeInfo = GetCellValueInfo(row.GetCell(26));
+                    if (!string.IsNullOrEmpty(doserIndexInfo.Value) && !string.IsNullOrEmpty(doserTypeInfo.Value))
+                    {
+                        string doserIndexFormatted = doserIndexInfo.IsNumeric ? doserIndexInfo.Value : $"\"{doserIndexInfo.Value}\"";
+                        string doserTypeFormatted = doserTypeInfo.IsNumeric ? doserTypeInfo.Value : $"\"{doserTypeInfo.Value}\"";
+                        result.AppendLine($"\"Doser\".Dev[{doserIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Doser\".Dev[{doserIndexFormatted}].CfgType := {doserTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Shower: Dev[столбец AD(29)], CfgType из столбца AC(28)
+                    CellValueInfo showerIndexInfo = GetCellValueInfo(row.GetCell(29));
+                    CellValueInfo showerTypeInfo = GetCellValueInfo(row.GetCell(28));
+                    if (!string.IsNullOrEmpty(showerIndexInfo.Value) && !string.IsNullOrEmpty(showerTypeInfo.Value))
+                    {
+                        string showerIndexFormatted = showerIndexInfo.IsNumeric ? showerIndexInfo.Value : $"\"{showerIndexInfo.Value}\"";
+                        string showerTypeFormatted = showerTypeInfo.IsNumeric ? showerTypeInfo.Value : $"\"{showerTypeInfo.Value}\"";
+                        result.AppendLine($"\"Shower\".Dev[{showerIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Shower\".Dev[{showerIndexFormatted}].CfgType := {showerTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Pok: Dev[столбец AF(31)], CfgType из столбца AE(30)
+                    CellValueInfo pokIndexInfo = GetCellValueInfo(row.GetCell(31));
+                    CellValueInfo pokTypeInfo = GetCellValueInfo(row.GetCell(30));
+                    if (!string.IsNullOrEmpty(pokIndexInfo.Value) && !string.IsNullOrEmpty(pokTypeInfo.Value))
+                    {
+                        string pokIndexFormatted = pokIndexInfo.IsNumeric ? pokIndexInfo.Value : $"\"{pokIndexInfo.Value}\"";
+                        string pokTypeFormatted = pokTypeInfo.IsNumeric ? pokTypeInfo.Value : $"\"{pokTypeInfo.Value}\"";
+                        result.AppendLine($"\"Pok\".Dev[{pokIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Pok\".Dev[{pokIndexFormatted}].CfgType := {pokTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Dry: Dev[столбец AH(33)], CfgType из столбца AG(32)
+                    CellValueInfo dryIndexInfo = GetCellValueInfo(row.GetCell(33));
+                    CellValueInfo dryTypeInfo = GetCellValueInfo(row.GetCell(32));
+                    if (!string.IsNullOrEmpty(dryIndexInfo.Value) && !string.IsNullOrEmpty(dryTypeInfo.Value))
+                    {
+                        string dryIndexFormatted = dryIndexInfo.IsNumeric ? dryIndexInfo.Value : $"\"{dryIndexInfo.Value}\"";
+                        string dryTypeFormatted = dryTypeInfo.IsNumeric ? dryTypeInfo.Value : $"\"{dryTypeInfo.Value}\"";
+                        result.AppendLine($"\"Dry\".Dev[{dryIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Dry\".Dev[{dryIndexFormatted}].CfgType := {dryTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // SafetyBar: Dev[столбец AJ(35)], CfgType из столбца AI(34)
+                    CellValueInfo safetyBarIndexInfo = GetCellValueInfo(row.GetCell(35));
+                    CellValueInfo safetyBarTypeInfo = GetCellValueInfo(row.GetCell(34));
+                    if (!string.IsNullOrEmpty(safetyBarIndexInfo.Value) && !string.IsNullOrEmpty(safetyBarTypeInfo.Value))
+                    {
+                        string safetyBarIndexFormatted = safetyBarIndexInfo.IsNumeric ? safetyBarIndexInfo.Value : $"\"{safetyBarIndexInfo.Value}\"";
+                        string safetyBarTypeFormatted = safetyBarTypeInfo.IsNumeric ? safetyBarTypeInfo.Value : $"\"{safetyBarTypeInfo.Value}\"";
+                        result.AppendLine($"\"SafetyBar\".Dev[{safetyBarIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"SafetyBar\".Dev[{safetyBarIndexFormatted}].CfgType := {safetyBarTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Sink: Dev[столбец AL(37)], CfgType из столбца AK(36)
+                    CellValueInfo sinkIndexInfo = GetCellValueInfo(row.GetCell(37));
+                    CellValueInfo sinkTypeInfo = GetCellValueInfo(row.GetCell(36));
+                    if (!string.IsNullOrEmpty(sinkIndexInfo.Value) && !string.IsNullOrEmpty(sinkTypeInfo.Value))
+                    {
+                        string sinkIndexFormatted = sinkIndexInfo.IsNumeric ? sinkIndexInfo.Value : $"\"{sinkIndexInfo.Value}\"";
+                        string sinkTypeFormatted = sinkTypeInfo.IsNumeric ? sinkTypeInfo.Value : $"\"{sinkTypeInfo.Value}\"";
+                        result.AppendLine($"\"Sink\".Dev[{sinkIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Sink\".Dev[{sinkIndexFormatted}].CfgType := {sinkTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Blower: Dev[столбец AN(39)], CfgType из столбца AM(38)
+                    CellValueInfo blowerIndexInfo = GetCellValueInfo(row.GetCell(39));
+                    CellValueInfo blowerTypeInfo = GetCellValueInfo(row.GetCell(38));
+                    if (!string.IsNullOrEmpty(blowerIndexInfo.Value) && !string.IsNullOrEmpty(blowerTypeInfo.Value))
+                    {
+                        string blowerIndexFormatted = blowerIndexInfo.IsNumeric ? blowerIndexInfo.Value : $"\"{blowerIndexInfo.Value}\"";
+                        string blowerTypeFormatted = blowerTypeInfo.IsNumeric ? blowerTypeInfo.Value : $"\"{blowerTypeInfo.Value}\"";
+                        result.AppendLine($"\"Blower\".Dev[{blowerIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Blower\".Dev[{blowerIndexFormatted}].CfgType := {blowerTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // BarRot: Dev[столбец AP(41)], CfgType из столбца AO(40)
+                    CellValueInfo barRotIndexInfo = GetCellValueInfo(row.GetCell(41));
+                    CellValueInfo barRotTypeInfo = GetCellValueInfo(row.GetCell(40));
+                    if (!string.IsNullOrEmpty(barRotIndexInfo.Value) && !string.IsNullOrEmpty(barRotTypeInfo.Value))
+                    {
+                        string barRotIndexFormatted = barRotIndexInfo.IsNumeric ? barRotIndexInfo.Value : $"\"{barRotIndexInfo.Value}\"";
+                        string barRotTypeFormatted = barRotTypeInfo.IsNumeric ? barRotTypeInfo.Value : $"\"{barRotTypeInfo.Value}\"";
+                        result.AppendLine($"\"BarRot\".Dev[{barRotIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"BarRot\".Dev[{barRotIndexFormatted}].CfgType := {barRotTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Chiller: Dev[столбец AR(43)], CfgType из столбца AQ(42)
+                    CellValueInfo chillerIndexInfo = GetCellValueInfo(row.GetCell(43));
+                    CellValueInfo chillerTypeInfo = GetCellValueInfo(row.GetCell(42));
+                    if (!string.IsNullOrEmpty(chillerIndexInfo.Value) && !string.IsNullOrEmpty(chillerTypeInfo.Value))
+                    {
+                        string chillerIndexFormatted = chillerIndexInfo.IsNumeric ? chillerIndexInfo.Value : $"\"{chillerIndexInfo.Value}\"";
+                        string chillerTypeFormatted = chillerTypeInfo.IsNumeric ? chillerTypeInfo.Value : $"\"{chillerTypeInfo.Value}\"";
+                        result.AppendLine($"\"Chiller\".Dev[{chillerIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Chiller\".Dev[{chillerIndexFormatted}].CfgType := {chillerTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Lifter: Dev[столбец AT(45)], CfgType из столбца AS(44)
+                    CellValueInfo lifterIndexInfo = GetCellValueInfo(row.GetCell(45));
+                    CellValueInfo lifterTypeInfo = GetCellValueInfo(row.GetCell(44));
+                    if (!string.IsNullOrEmpty(lifterIndexInfo.Value) && !string.IsNullOrEmpty(lifterTypeInfo.Value))
+                    {
+                        string lifterIndexFormatted = lifterIndexInfo.IsNumeric ? lifterIndexInfo.Value : $"\"{lifterIndexInfo.Value}\"";
+                        string lifterTypeFormatted = lifterTypeInfo.IsNumeric ? lifterTypeInfo.Value : $"\"{lifterTypeInfo.Value}\"";
+                        result.AppendLine($"\"Lifter\".Dev[{lifterIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Lifter\".Dev[{lifterIndexFormatted}].CfgType := {lifterTypeFormatted};");
+                        totalRecords += 2;
+                    }
+                    
+                    // Vent: Dev[столбец AV(47)], CfgType из столбца AU(46)
+                    CellValueInfo ventIndexInfo = GetCellValueInfo(row.GetCell(47));
+                    CellValueInfo ventTypeInfo = GetCellValueInfo(row.GetCell(46));
+                    if (!string.IsNullOrEmpty(ventIndexInfo.Value) && !string.IsNullOrEmpty(ventTypeInfo.Value))
+                    {
+                        string ventIndexFormatted = ventIndexInfo.IsNumeric ? ventIndexInfo.Value : $"\"{ventIndexInfo.Value}\"";
+                        string ventTypeFormatted = ventTypeInfo.IsNumeric ? ventTypeInfo.Value : $"\"{ventTypeInfo.Value}\"";
+                        result.AppendLine($"\"Vent\".Dev[{ventIndexFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"Vent\".Dev[{ventIndexFormatted}].CfgType := {ventTypeFormatted};");
+                        totalRecords += 2;
                     }
                     
                     result.AppendLine();
