@@ -95,10 +95,10 @@ namespace MiniTest
             tabControl.Size = new Size(660, 520);
             
             tabSCL = new TabPage();
-            tabSCL.Text = "Генерация SCL";
+            tabSCL.Text = "Спецификация";
             
             tabOther = new TabPage();
-            tabOther.Text = "Другой формат";
+            tabOther.Text = "Ввод-вывод";
             
             tabControl.Controls.Add(tabSCL);
             tabControl.Controls.Add(tabOther);
@@ -164,7 +164,7 @@ namespace MiniTest
             // Кнопки управления
             btnGenerate = new Button();
             btnGenerate.Text = "Сгенерировать";
-            btnGenerate.Location = new Point(140, 125);
+            btnGenerate.Location = new Point(265, 125);
             btnGenerate.Size = new Size(130, 35);
             btnGenerate.BackColor = Color.FromArgb(76, 175, 80);
             btnGenerate.ForeColor = Color.White;
@@ -172,7 +172,7 @@ namespace MiniTest
             
             btnExit = new Button();
             btnExit.Text = "Выход";
-            btnExit.Location = new Point(280, 125);
+            btnExit.Location = new Point(545, 490);
             btnExit.Size = new Size(100, 35);
             btnExit.BackColor = Color.FromArgb(244, 67, 54);
             btnExit.ForeColor = Color.White;
@@ -197,7 +197,7 @@ namespace MiniTest
                 lblExcelPath, txtExcelPath, btnBrowseExcel,
                 lblTxtPath, txtTxtPath, btnBrowseTxt,
                 lblStartRow, numStartRow, lblEndRow, numEndRow,
-                btnGenerate, btnExit,
+                btnGenerate,
                 lblLog, rtbLog
             });
             
@@ -260,7 +260,7 @@ namespace MiniTest
             // Кнопка генерации для второй вкладки
             btnGenerate2 = new Button();
             btnGenerate2.Text = "Сгенерировать";
-            btnGenerate2.Location = new Point(140, 125);
+            btnGenerate2.Location = new Point(265, 125);
             btnGenerate2.Size = new Size(130, 35);
             btnGenerate2.BackColor = Color.FromArgb(76, 175, 80);
             btnGenerate2.ForeColor = Color.White;
@@ -304,6 +304,7 @@ namespace MiniTest
             // ----- Добавляем все элементы на форму -----
             this.Controls.AddRange(new Control[] {
                 tabControl,
+                btnExit,
                 lblStatus, progressBar
             });
         }
