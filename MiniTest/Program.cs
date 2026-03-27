@@ -48,7 +48,6 @@ namespace MiniTest
         private Button btnBrowseTxt;    // Кнопка выбора TXT файла
         private Button btnGenerate;     // Кнопка генерации
         private Button btnExit;         // Кнопка выхода
-        private Button testButt;
 
         // Поле для вывода лога (сообщений о работе)
         private RichTextBox rtbLog;
@@ -65,6 +64,10 @@ namespace MiniTest
         private TextBox txtTxtPath2;
         private Button btnBrowseExcel2;
         private Button btnBrowseTxt2;
+        private NumericUpDown numStartRow2;
+        private NumericUpDown numEndRow2;
+        private Button btnGenerate2;
+        private RichTextBox rtbLog2;
 
         // ========== КОНСТРУКТОР ==========
         // Это метод, который вызывается при создании окна
@@ -175,13 +178,6 @@ namespace MiniTest
             btnExit.ForeColor = Color.White;
             btnExit.Click += (s, e) => Application.Exit();
 
-            testButt = new Button();
-            testButt.Text = "Тест";
-            testButt.Location = new Point(400, 125);
-            testButt.Size = new Size(100, 35);
-            testButt.BackColor = Color.Aquamarine;
-            testButt.ForeColor = Color.White;
-
             // Лог выполнения
             Label lblLog = new Label();
             lblLog.Text = "Лог выполнения:";
@@ -201,7 +197,7 @@ namespace MiniTest
                 lblExcelPath, txtExcelPath, btnBrowseExcel,
                 lblTxtPath, txtTxtPath, btnBrowseTxt,
                 lblStartRow, numStartRow, lblEndRow, numEndRow,
-                btnGenerate, btnExit, testButt,
+                btnGenerate, btnExit,
                 lblLog, rtbLog
             });
             
@@ -235,11 +231,62 @@ namespace MiniTest
             btnBrowseTxt2.Location = new Point(550, 50);
             btnBrowseTxt2.Size = new Size(35, 25);
             btnBrowseTxt2.Click += BtnBrowseTxt2_Click;
+
+            // Выбор диапазона строк для второй вкладки
+            Label lblStartRow2 = new Label();
+            lblStartRow2.Text = "Начальная строка:";
+            lblStartRow2.Location = new Point(10, 85);
+            lblStartRow2.Size = new Size(110, 25);
+            
+            numStartRow2 = new NumericUpDown();
+            numStartRow2.Location = new Point(130, 85);
+            numStartRow2.Size = new Size(60, 25);
+            numStartRow2.Minimum = 1;
+            numStartRow2.Maximum = 200;
+            numStartRow2.Value = 8;
+
+            Label lblEndRow2 = new Label();
+            lblEndRow2.Text = "Конечная строка:";
+            lblEndRow2.Location = new Point(210, 85);
+            lblEndRow2.Size = new Size(100, 25);
+            
+            numEndRow2 = new NumericUpDown();
+            numEndRow2.Location = new Point(320, 85);
+            numEndRow2.Size = new Size(60, 25);
+            numEndRow2.Minimum = 1;
+            numEndRow2.Maximum = 200;
+            numEndRow2.Value = 46;
+
+            // Кнопка генерации для второй вкладки
+            btnGenerate2 = new Button();
+            btnGenerate2.Text = "Сгенерировать";
+            btnGenerate2.Location = new Point(140, 125);
+            btnGenerate2.Size = new Size(130, 35);
+            btnGenerate2.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerate2.ForeColor = Color.White;
+            btnGenerate2.Click += BtnGenerate2_Click;
+
+            // Лог выполнения для второй вкладки
+            Label lblLog2 = new Label();
+            lblLog2.Text = "Лог выполнения:";
+            lblLog2.Location = new Point(10, 175);
+            lblLog2.Size = new Size(120, 20);
+            
+            rtbLog2 = new RichTextBox();
+            rtbLog2.Location = new Point(10, 195);
+            rtbLog2.Size = new Size(640, 280);
+            rtbLog2.ReadOnly = true;
+            rtbLog2.BackColor = Color.Black;
+            rtbLog2.ForeColor = Color.LightGreen;
+            rtbLog2.Font = new Font("Consolas", 9);
             
             // Добавляем элементы на вторую вкладку
             tabOther.Controls.AddRange(new Control[] {
                 lblExcelPath2, txtExcelPath2, btnBrowseExcel2,
-                lblTxtPath2, txtTxtPath2, btnBrowseTxt2
+                lblTxtPath2, txtTxtPath2, btnBrowseTxt2,
+                lblStartRow2, numStartRow2, lblEndRow2, numEndRow2,
+                btnGenerate2,
+                lblLog2, rtbLog2
             });
             
             // ----- Статус бар -----
@@ -441,6 +488,78 @@ namespace MiniTest
             }
         }
         
+        // Главная кнопка "Сгенерировать" для второй вкладки
+        private void BtnGenerate2_Click(object sender, EventArgs e)
+        {
+            // ===== ПРОВЕРКИ =====
+            // Проверяем, выбран ли Excel файл
+            if (string.IsNullOrEmpty(txtExcelPath2.Text))
+            {
+                MessageBox.Show("Выберите Excel файл!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            // Проверяем, выбран ли TXT файл
+            if (string.IsNullOrEmpty(txtTxtPath2.Text))
+            {
+                MessageBox.Show("Выберите путь для сохранения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            // Проверяем, существует ли Excel файл
+            if (!File.Exists(txtExcelPath2.Text))
+            {
+                MessageBox.Show("Excel файл не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            // Проверяем, что начальная строка не больше конечной
+            if (numStartRow2.Value > numEndRow2.Value)
+            {
+                MessageBox.Show("Начальная строка не может быть больше конечной!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            // ===== НАЧИНАЕМ ГЕНЕРАЦИЮ =====
+            // Блокируем кнопку генерации, чтобы не нажали повторно
+            btnGenerate2.Enabled = false;
+            // Показываем полоску прогресса
+            progressBar.Visible = true;
+            // Пишем в лог
+            Log("🚀 Запуск генерации...");
+            
+            try
+            {
+                // Генерируем SCL код
+                string sclCode = GenerateSCL2();
+                
+                // Сохраняем результат в файл
+                File.WriteAllText(txtTxtPath2.Text, sclCode, Encoding.UTF8);
+                Log($"✅ Файл сохранен: {txtTxtPath2.Text}");
+                
+                // Считаем количество записей
+                int recordCount = CountRecords(sclCode);
+                Log($"📊 Всего сгенерировано записей: {recordCount}");
+                
+                // Предлагаем открыть файл
+                if (MessageBox.Show("Генерация завершена! Открыть файл?", "Успех",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", txtTxtPath2.Text);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"❌ Ошибка: {ex.Message}");
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnGenerate2.Enabled = true;
+                progressBar.Visible = false;
+            }
+        }
+        
         // ========== ГЛАВНАЯ ЛОГИКА ГЕНЕРАЦИИ ==========
         private string GenerateSCL()
         {
@@ -516,6 +635,64 @@ namespace MiniTest
             }
             
             // Возвращаем полученный текст
+            return result.ToString();
+        }
+        
+        // Генерация для второй вкладки (пока аналогична первой)
+        private string GenerateSCL2()
+        {
+            StringBuilder result = new StringBuilder();
+            int startRow = (int)numStartRow2.Value;
+            int endRow = (int)numEndRow2.Value;
+            
+            result.AppendLine("// SCL код сгенерирован автоматически (вкладка 2)");
+            result.AppendLine($"// Дата генерации: {DateTime.Now}");
+            result.AppendLine($"// Диапазон строк: {startRow} - {endRow}");
+            result.AppendLine($"// Файл источник: {Path.GetFileName(txtExcelPath2.Text)}");
+            result.AppendLine();
+            
+            using (FileStream fs = new FileStream(txtExcelPath2.Text, FileMode.Open, FileAccess.Read))
+            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
+            {
+                ISheet sheet = workbook.GetSheetAt(0);
+                Log2($"📋 Работаем с листом: {sheet.SheetName}");
+                
+                int totalRecords = 0;
+                
+                foreach (var device in devices)
+                {
+                    result.AppendLine($"// {device.Comment}");
+                    
+                    for (int rowNum = startRow; rowNum <= endRow; rowNum++)
+                    {
+                        IRow row = sheet.GetRow(rowNum);
+                        if (row == null) continue;
+                        
+                        CellValueInfo placeInfo = GetCellValueInfo(row.GetCell(0));
+                        if (string.IsNullOrEmpty(placeInfo.Value)) continue;
+                        
+                        CellValueInfo typeInfo = GetCellValueInfo(row.GetCell(device.FirstCol));
+                        CellValueInfo nameInfo = GetCellValueInfo(row.GetCell(device.SecondCol));
+                        
+                        if (string.IsNullOrEmpty(typeInfo.Value) || string.IsNullOrEmpty(nameInfo.Value))
+                            continue;
+                        
+                        string placeFormatted = placeInfo.IsNumeric ? placeInfo.Value : $"\"{placeInfo.Value}\"";
+                        string typeFormatted = typeInfo.IsNumeric ? typeInfo.Value : $"\"{typeInfo.Value}\"";
+                        string nameFormatted = nameInfo.IsNumeric ? nameInfo.Value : $"\"{nameInfo.Value}\"";
+                        
+                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgType := {typeFormatted};");
+                        
+                        totalRecords++;
+                    }
+                    
+                    result.AppendLine();
+                }
+                
+                Log2($"✅ Обработано записей: {totalRecords}");
+            }
+            
             return result.ToString();
         }
         
@@ -619,19 +796,29 @@ namespace MiniTest
         // Записывает сообщение в лог и в строку статуса
         private void Log(string message)
         {
-            // Проверяем, нужно ли обращаться к элементу из другого потока
             if (rtbLog.InvokeRequired)
             {
-                // Если да, вызываем этот же метод в нужном потоке
                 rtbLog.Invoke(new Action<string>(Log), message);
             }
             else
             {
-                // Добавляем сообщение с временем
                 rtbLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
-                // Прокручиваем вниз
                 rtbLog.ScrollToCaret();
-                // Обновляем строку статуса
+                lblStatus.Text = message;
+            }
+        }
+        
+        // Записывает сообщение в лог второй вкладки
+        private void Log2(string message)
+        {
+            if (rtbLog2.InvokeRequired)
+            {
+                rtbLog2.Invoke(new Action<string>(Log2), message);
+            }
+            else
+            {
+                rtbLog2.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
+                rtbLog2.ScrollToCaret();
                 lblStatus.Text = message;
             }
         }
