@@ -59,7 +59,7 @@ namespace MiniTest
         // Список всех устройств, которые нужно обработать
         private List<Device> devices;
         
-        // Поля для второй вкладки
+        // Поля для второй вкладки (заготовка на будущее)
         private TextBox txtExcelPath2;
         private TextBox txtTxtPath2;
         private Button btnBrowseExcel2;
@@ -169,14 +169,6 @@ namespace MiniTest
             btnGenerate.BackColor = Color.FromArgb(76, 175, 80);
             btnGenerate.ForeColor = Color.White;
             btnGenerate.Click += BtnGenerate_Click;
-            
-            btnExit = new Button();
-            btnExit.Text = "Выход";
-            btnExit.Location = new Point(545, 490);
-            btnExit.Size = new Size(100, 35);
-            btnExit.BackColor = Color.FromArgb(244, 67, 54);
-            btnExit.ForeColor = Color.White;
-            btnExit.Click += (s, e) => Application.Exit();
 
             // Лог выполнения
             Label lblLog = new Label();
@@ -288,7 +280,7 @@ namespace MiniTest
                 btnGenerate2,
                 lblLog2, rtbLog2
             });
-            
+
             // ----- Статус бар -----
             lblStatus = new Label();
             lblStatus.Text = "Готов к работе";
@@ -300,6 +292,15 @@ namespace MiniTest
             progressBar.Size = new Size(250, 20);
             progressBar.Visible = false;
             progressBar.Style = ProgressBarStyle.Marquee;
+
+            // ----- Кнопка выхода (общая для всех вкладок) -----
+            btnExit = new Button();
+            btnExit.Text = "Выход";
+            btnExit.Location = new Point(545, 490);
+            btnExit.Size = new Size(100, 35);
+            btnExit.BackColor = Color.FromArgb(244, 67, 54);
+            btnExit.ForeColor = Color.White;
+            btnExit.Click += (s, e) => Application.Exit();
 
             // ----- Добавляем все элементы на форму -----
             this.Controls.AddRange(new Control[] {
@@ -317,24 +318,24 @@ namespace MiniTest
             devices = new List<Device>();
             
             // Добавляем устройства одно за другим
-            devices.Add(new Device("Doliv", "Долив", 13, 14));
-            devices.Add(new Device("Tmpr", "Температура", 15, 16));
-            devices.Add(new Device("Cover", "Крышка", 17, 18));
-            devices.Add(new Device("Jr", "Жироуловитель", 19, 20));
-            devices.Add(new Device("Mix", "Перемешивание", 21, 22));
-            devices.Add(new Device("Vip", "Выпрямитель", 23, 24));
-            devices.Add(new Device("Filtr", "Фильтрование", 25, 26));
-            devices.Add(new Device("Doser", "Дозирование", 27, 28));
-            devices.Add(new Device("Shower", "Душирование", 29, 30));
-            devices.Add(new Device("Pok", "Качание", 31, 32));
-            devices.Add(new Device("Dry", "Сушилка", 33, 34));
-            devices.Add(new Device("SafetyBar", "Барьер безопасности", 35, 36));
-            devices.Add(new Device("Sink", "Слив", 37, 38));
-            devices.Add(new Device("Blower", "Воздуходувка", 39, 40));
-            devices.Add(new Device("BarRot", "Вращение барабанов", 41, 42));
-            devices.Add(new Device("Chiller", "Чиллер", 43, 44));
-            devices.Add(new Device("Lifter", "Подъемник", 45, 46));
-            devices.Add(new Device("Vent", "Вентиляция", 47, 48));
+            devices.Add(new Device("Doliv", "Долив", 12, 13));
+            devices.Add(new Device("Tmpr", "Температура", 14, 15));
+            devices.Add(new Device("Cover", "Крышка", 16, 17));
+            devices.Add(new Device("Jr", "Жироуловитель", 18, 19));
+            devices.Add(new Device("Mixer", "Перемешивание", 20, 21));
+            devices.Add(new Device("Vip", "Выпрямитель", 22, 23));
+            devices.Add(new Device("Filtr", "Фильтрование", 24, 25));
+            devices.Add(new Device("Doser", "Дозирование", 26, 27));
+            devices.Add(new Device("Shower", "Душирование", 28, 29));
+            devices.Add(new Device("Pok", "Качание", 30, 31));
+            devices.Add(new Device("Dry", "Сушилка", 32, 33));
+            devices.Add(new Device("SafetyBar", "Барьер безопасности", 34, 35));
+            devices.Add(new Device("Sink", "Слив", 36, 37));
+            devices.Add(new Device("Blower", "Воздуходувка", 38, 39));
+            devices.Add(new Device("BarRot", "Вращение барабанов", 40, 41));
+            devices.Add(new Device("Chiller", "Чиллер", 42, 43));
+            devices.Add(new Device("Lifter", "Подъемник", 44, 45));
+            devices.Add(new Device("Vent", "Вентиляция", 46, 47));
         }
 
         // ========== ОБРАБОТЧИКИ КНОПОК ==========
@@ -489,76 +490,11 @@ namespace MiniTest
             }
         }
         
-        // Главная кнопка "Сгенерировать" для второй вкладки
+        // Главная кнопка "Сгенерировать" для второй вкладки (пока без логики)
         private void BtnGenerate2_Click(object sender, EventArgs e)
         {
-            // ===== ПРОВЕРКИ =====
-            // Проверяем, выбран ли Excel файл
-            if (string.IsNullOrEmpty(txtExcelPath2.Text))
-            {
-                MessageBox.Show("Выберите Excel файл!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
-            // Проверяем, выбран ли TXT файл
-            if (string.IsNullOrEmpty(txtTxtPath2.Text))
-            {
-                MessageBox.Show("Выберите путь для сохранения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
-            // Проверяем, существует ли Excel файл
-            if (!File.Exists(txtExcelPath2.Text))
-            {
-                MessageBox.Show("Excel файл не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            
-            // Проверяем, что начальная строка не больше конечной
-            if (numStartRow2.Value > numEndRow2.Value)
-            {
-                MessageBox.Show("Начальная строка не может быть больше конечной!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            
-            // ===== НАЧИНАЕМ ГЕНЕРАЦИЮ =====
-            // Блокируем кнопку генерации, чтобы не нажали повторно
-            btnGenerate2.Enabled = false;
-            // Показываем полоску прогресса
-            progressBar.Visible = true;
-            // Пишем в лог
-            Log("🚀 Запуск генерации...");
-            
-            try
-            {
-                // Генерируем SCL код
-                string sclCode = GenerateSCL2();
-                
-                // Сохраняем результат в файл
-                File.WriteAllText(txtTxtPath2.Text, sclCode, Encoding.UTF8);
-                Log($"✅ Файл сохранен: {txtTxtPath2.Text}");
-                
-                // Считаем количество записей
-                int recordCount = CountRecords(sclCode);
-                Log($"📊 Всего сгенерировано записей: {recordCount}");
-                
-                // Предлагаем открыть файл
-                if (MessageBox.Show("Генерация завершена! Открыть файл?", "Успех",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    System.Diagnostics.Process.Start("notepad.exe", txtTxtPath2.Text);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"❌ Ошибка: {ex.Message}");
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                btnGenerate2.Enabled = true;
-                progressBar.Visible = false;
-            }
+            MessageBox.Show("Функционал вкладки 'Ввод-вывод' будет добавлен позже.", "Информация", 
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         
         // ========== ГЛАВНАЯ ЛОГИКА ГЕНЕРАЦИИ ==========
@@ -636,265 +572,6 @@ namespace MiniTest
             }
             
             // Возвращаем полученный текст
-            return result.ToString();
-        }
-        
-        // Генерация для второй вкладки (Ввод-вывод)
-        private string GenerateSCL2()
-        {
-            StringBuilder result = new StringBuilder();
-            int startRow = (int)numStartRow2.Value;
-            int endRow = (int)numEndRow2.Value;
-            
-            result.AppendLine("// SCL код сгенерирован автоматически (вкладка 2)");
-            result.AppendLine($"// Дата генерации: {DateTime.Now}");
-            result.AppendLine($"// Диапазон строк: {startRow} - {endRow}");
-            result.AppendLine($"// Файл источник: {Path.GetFileName(txtExcelPath2.Text)}");
-            result.AppendLine();
-            
-            using (FileStream fs = new FileStream(txtExcelPath2.Text, FileMode.Open, FileAccess.Read))
-            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
-            {
-                ISheet sheet = workbook.GetSheetAt(0);
-                Log2($"📋 Работаем с листом: {sheet.SheetName}");
-                
-                int totalRecords = 0;
-                
-                // Проходим по строкам от startRow до endRow
-                for (int rowNum = startRow; rowNum <= endRow; rowNum++)
-                {
-                    IRow row = sheet.GetRow(rowNum);
-                    if (row == null) continue;
-                    
-                    // Получаем значение из столбца A (индекс 0) - CfgPlace
-                    CellValueInfo placeInfo = GetCellValueInfo(row.GetCell(0));
-                    // Пропускаем пустые строки
-                    if (string.IsNullOrEmpty(placeInfo.Value)) continue;
-                    
-                    string placeFormatted = placeInfo.IsNumeric ? placeInfo.Value : $"\"{placeInfo.Value}\"";
-                    
-                    // Doliv: Dev[столбец N(13)], CfgType из столбца M(12)
-                    CellValueInfo dolivIndexInfo = GetCellValueInfo(row.GetCell(13));
-                    CellValueInfo dolivTypeInfo = GetCellValueInfo(row.GetCell(12));
-                    if (!string.IsNullOrEmpty(dolivIndexInfo.Value) && !string.IsNullOrEmpty(dolivTypeInfo.Value))
-                    {
-                        string dolivIndexFormatted = dolivIndexInfo.IsNumeric ? dolivIndexInfo.Value : $"\"{dolivIndexInfo.Value}\"";
-                        string dolivTypeFormatted = dolivTypeInfo.IsNumeric ? dolivTypeInfo.Value : $"\"{dolivTypeInfo.Value}\"";
-                        result.AppendLine($"\"Doliv\".Dev[{dolivIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Doliv\".Dev[{dolivIndexFormatted}].CfgType := {dolivTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Tmpr: Dev[столбец P(15)], CfgType из столбца O(14)
-                    CellValueInfo tmprIndexInfo = GetCellValueInfo(row.GetCell(15));
-                    CellValueInfo tmprTypeInfo = GetCellValueInfo(row.GetCell(14));
-                    if (!string.IsNullOrEmpty(tmprIndexInfo.Value) && !string.IsNullOrEmpty(tmprTypeInfo.Value))
-                    {
-                        string tmprIndexFormatted = tmprIndexInfo.IsNumeric ? tmprIndexInfo.Value : $"\"{tmprIndexInfo.Value}\"";
-                        string tmprTypeFormatted = tmprTypeInfo.IsNumeric ? tmprTypeInfo.Value : $"\"{tmprTypeInfo.Value}\"";
-                        result.AppendLine($"\"Tmpr\".Dev[{tmprIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Tmpr\".Dev[{tmprIndexFormatted}].CfgType := {tmprTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Cover: Dev[столбец R(17)], CfgType из столбца Q(16)
-                    CellValueInfo coverIndexInfo = GetCellValueInfo(row.GetCell(17));
-                    CellValueInfo coverTypeInfo = GetCellValueInfo(row.GetCell(16));
-                    if (!string.IsNullOrEmpty(coverIndexInfo.Value) && !string.IsNullOrEmpty(coverTypeInfo.Value))
-                    {
-                        string coverIndexFormatted = coverIndexInfo.IsNumeric ? coverIndexInfo.Value : $"\"{coverIndexInfo.Value}\"";
-                        string coverTypeFormatted = coverTypeInfo.IsNumeric ? coverTypeInfo.Value : $"\"{coverTypeInfo.Value}\"";
-                        result.AppendLine($"\"Cover\".Dev[{coverIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Cover\".Dev[{coverIndexFormatted}].CfgType := {coverTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Jr: Dev[столбец T(19)], CfgType из столбца S(18)
-                    CellValueInfo jrIndexInfo = GetCellValueInfo(row.GetCell(19));
-                    CellValueInfo jrTypeInfo = GetCellValueInfo(row.GetCell(18));
-                    if (!string.IsNullOrEmpty(jrIndexInfo.Value) && !string.IsNullOrEmpty(jrTypeInfo.Value))
-                    {
-                        string jrIndexFormatted = jrIndexInfo.IsNumeric ? jrIndexInfo.Value : $"\"{jrIndexInfo.Value}\"";
-                        string jrTypeFormatted = jrTypeInfo.IsNumeric ? jrTypeInfo.Value : $"\"{jrTypeInfo.Value}\"";
-                        result.AppendLine($"\"Jr\".Dev[{jrIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Jr\".Dev[{jrIndexFormatted}].CfgType := {jrTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Mixer: Dev[столбец V(21)], CfgType из столбца U(20)
-                    CellValueInfo mixerIndexInfo = GetCellValueInfo(row.GetCell(21));
-                    CellValueInfo mixerTypeInfo = GetCellValueInfo(row.GetCell(20));
-                    if (!string.IsNullOrEmpty(mixerIndexInfo.Value) && !string.IsNullOrEmpty(mixerTypeInfo.Value))
-                    {
-                        string mixerIndexFormatted = mixerIndexInfo.IsNumeric ? mixerIndexInfo.Value : $"\"{mixerIndexInfo.Value}\"";
-                        string mixerTypeFormatted = mixerTypeInfo.IsNumeric ? mixerTypeInfo.Value : $"\"{mixerTypeInfo.Value}\"";
-                        result.AppendLine($"\"Mixer\".Dev[{mixerIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Mixer\".Dev[{mixerIndexFormatted}].CfgType := {mixerTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Vip: Dev[столбец X(23)], CfgType из столбца W(22)
-                    CellValueInfo vipIndexInfo = GetCellValueInfo(row.GetCell(23));
-                    CellValueInfo vipTypeInfo = GetCellValueInfo(row.GetCell(22));
-                    if (!string.IsNullOrEmpty(vipIndexInfo.Value) && !string.IsNullOrEmpty(vipTypeInfo.Value))
-                    {
-                        string vipIndexFormatted = vipIndexInfo.IsNumeric ? vipIndexInfo.Value : $"\"{vipIndexInfo.Value}\"";
-                        string vipTypeFormatted = vipTypeInfo.IsNumeric ? vipTypeInfo.Value : $"\"{vipTypeInfo.Value}\"";
-                        result.AppendLine($"\"Vip\".Dev[{vipIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Vip\".Dev[{vipIndexFormatted}].CfgType := {vipTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Filtr: Dev[столбец Z(25)], CfgType из столбца Y(24)
-                    CellValueInfo filtrIndexInfo = GetCellValueInfo(row.GetCell(25));
-                    CellValueInfo filtrTypeInfo = GetCellValueInfo(row.GetCell(24));
-                    if (!string.IsNullOrEmpty(filtrIndexInfo.Value) && !string.IsNullOrEmpty(filtrTypeInfo.Value))
-                    {
-                        string filtrIndexFormatted = filtrIndexInfo.IsNumeric ? filtrIndexInfo.Value : $"\"{filtrIndexInfo.Value}\"";
-                        string filtrTypeFormatted = filtrTypeInfo.IsNumeric ? filtrTypeInfo.Value : $"\"{filtrTypeInfo.Value}\"";
-                        result.AppendLine($"\"Filtr\".Dev[{filtrIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Filtr\".Dev[{filtrIndexFormatted}].CfgType := {filtrTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Doser: Dev[столбец AB(27)], CfgType из столбца AA(26)
-                    CellValueInfo doserIndexInfo = GetCellValueInfo(row.GetCell(27));
-                    CellValueInfo doserTypeInfo = GetCellValueInfo(row.GetCell(26));
-                    if (!string.IsNullOrEmpty(doserIndexInfo.Value) && !string.IsNullOrEmpty(doserTypeInfo.Value))
-                    {
-                        string doserIndexFormatted = doserIndexInfo.IsNumeric ? doserIndexInfo.Value : $"\"{doserIndexInfo.Value}\"";
-                        string doserTypeFormatted = doserTypeInfo.IsNumeric ? doserTypeInfo.Value : $"\"{doserTypeInfo.Value}\"";
-                        result.AppendLine($"\"Doser\".Dev[{doserIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Doser\".Dev[{doserIndexFormatted}].CfgType := {doserTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Shower: Dev[столбец AD(29)], CfgType из столбца AC(28)
-                    CellValueInfo showerIndexInfo = GetCellValueInfo(row.GetCell(29));
-                    CellValueInfo showerTypeInfo = GetCellValueInfo(row.GetCell(28));
-                    if (!string.IsNullOrEmpty(showerIndexInfo.Value) && !string.IsNullOrEmpty(showerTypeInfo.Value))
-                    {
-                        string showerIndexFormatted = showerIndexInfo.IsNumeric ? showerIndexInfo.Value : $"\"{showerIndexInfo.Value}\"";
-                        string showerTypeFormatted = showerTypeInfo.IsNumeric ? showerTypeInfo.Value : $"\"{showerTypeInfo.Value}\"";
-                        result.AppendLine($"\"Shower\".Dev[{showerIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Shower\".Dev[{showerIndexFormatted}].CfgType := {showerTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Pok: Dev[столбец AF(31)], CfgType из столбца AE(30)
-                    CellValueInfo pokIndexInfo = GetCellValueInfo(row.GetCell(31));
-                    CellValueInfo pokTypeInfo = GetCellValueInfo(row.GetCell(30));
-                    if (!string.IsNullOrEmpty(pokIndexInfo.Value) && !string.IsNullOrEmpty(pokTypeInfo.Value))
-                    {
-                        string pokIndexFormatted = pokIndexInfo.IsNumeric ? pokIndexInfo.Value : $"\"{pokIndexInfo.Value}\"";
-                        string pokTypeFormatted = pokTypeInfo.IsNumeric ? pokTypeInfo.Value : $"\"{pokTypeInfo.Value}\"";
-                        result.AppendLine($"\"Pok\".Dev[{pokIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Pok\".Dev[{pokIndexFormatted}].CfgType := {pokTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Dry: Dev[столбец AH(33)], CfgType из столбца AG(32)
-                    CellValueInfo dryIndexInfo = GetCellValueInfo(row.GetCell(33));
-                    CellValueInfo dryTypeInfo = GetCellValueInfo(row.GetCell(32));
-                    if (!string.IsNullOrEmpty(dryIndexInfo.Value) && !string.IsNullOrEmpty(dryTypeInfo.Value))
-                    {
-                        string dryIndexFormatted = dryIndexInfo.IsNumeric ? dryIndexInfo.Value : $"\"{dryIndexInfo.Value}\"";
-                        string dryTypeFormatted = dryTypeInfo.IsNumeric ? dryTypeInfo.Value : $"\"{dryTypeInfo.Value}\"";
-                        result.AppendLine($"\"Dry\".Dev[{dryIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Dry\".Dev[{dryIndexFormatted}].CfgType := {dryTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // SafetyBar: Dev[столбец AJ(35)], CfgType из столбца AI(34)
-                    CellValueInfo safetyBarIndexInfo = GetCellValueInfo(row.GetCell(35));
-                    CellValueInfo safetyBarTypeInfo = GetCellValueInfo(row.GetCell(34));
-                    if (!string.IsNullOrEmpty(safetyBarIndexInfo.Value) && !string.IsNullOrEmpty(safetyBarTypeInfo.Value))
-                    {
-                        string safetyBarIndexFormatted = safetyBarIndexInfo.IsNumeric ? safetyBarIndexInfo.Value : $"\"{safetyBarIndexInfo.Value}\"";
-                        string safetyBarTypeFormatted = safetyBarTypeInfo.IsNumeric ? safetyBarTypeInfo.Value : $"\"{safetyBarTypeInfo.Value}\"";
-                        result.AppendLine($"\"SafetyBar\".Dev[{safetyBarIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"SafetyBar\".Dev[{safetyBarIndexFormatted}].CfgType := {safetyBarTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Sink: Dev[столбец AL(37)], CfgType из столбца AK(36)
-                    CellValueInfo sinkIndexInfo = GetCellValueInfo(row.GetCell(37));
-                    CellValueInfo sinkTypeInfo = GetCellValueInfo(row.GetCell(36));
-                    if (!string.IsNullOrEmpty(sinkIndexInfo.Value) && !string.IsNullOrEmpty(sinkTypeInfo.Value))
-                    {
-                        string sinkIndexFormatted = sinkIndexInfo.IsNumeric ? sinkIndexInfo.Value : $"\"{sinkIndexInfo.Value}\"";
-                        string sinkTypeFormatted = sinkTypeInfo.IsNumeric ? sinkTypeInfo.Value : $"\"{sinkTypeInfo.Value}\"";
-                        result.AppendLine($"\"Sink\".Dev[{sinkIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Sink\".Dev[{sinkIndexFormatted}].CfgType := {sinkTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Blower: Dev[столбец AN(39)], CfgType из столбца AM(38)
-                    CellValueInfo blowerIndexInfo = GetCellValueInfo(row.GetCell(39));
-                    CellValueInfo blowerTypeInfo = GetCellValueInfo(row.GetCell(38));
-                    if (!string.IsNullOrEmpty(blowerIndexInfo.Value) && !string.IsNullOrEmpty(blowerTypeInfo.Value))
-                    {
-                        string blowerIndexFormatted = blowerIndexInfo.IsNumeric ? blowerIndexInfo.Value : $"\"{blowerIndexInfo.Value}\"";
-                        string blowerTypeFormatted = blowerTypeInfo.IsNumeric ? blowerTypeInfo.Value : $"\"{blowerTypeInfo.Value}\"";
-                        result.AppendLine($"\"Blower\".Dev[{blowerIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Blower\".Dev[{blowerIndexFormatted}].CfgType := {blowerTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // BarRot: Dev[столбец AP(41)], CfgType из столбца AO(40)
-                    CellValueInfo barRotIndexInfo = GetCellValueInfo(row.GetCell(41));
-                    CellValueInfo barRotTypeInfo = GetCellValueInfo(row.GetCell(40));
-                    if (!string.IsNullOrEmpty(barRotIndexInfo.Value) && !string.IsNullOrEmpty(barRotTypeInfo.Value))
-                    {
-                        string barRotIndexFormatted = barRotIndexInfo.IsNumeric ? barRotIndexInfo.Value : $"\"{barRotIndexInfo.Value}\"";
-                        string barRotTypeFormatted = barRotTypeInfo.IsNumeric ? barRotTypeInfo.Value : $"\"{barRotTypeInfo.Value}\"";
-                        result.AppendLine($"\"BarRot\".Dev[{barRotIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"BarRot\".Dev[{barRotIndexFormatted}].CfgType := {barRotTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Chiller: Dev[столбец AR(43)], CfgType из столбца AQ(42)
-                    CellValueInfo chillerIndexInfo = GetCellValueInfo(row.GetCell(43));
-                    CellValueInfo chillerTypeInfo = GetCellValueInfo(row.GetCell(42));
-                    if (!string.IsNullOrEmpty(chillerIndexInfo.Value) && !string.IsNullOrEmpty(chillerTypeInfo.Value))
-                    {
-                        string chillerIndexFormatted = chillerIndexInfo.IsNumeric ? chillerIndexInfo.Value : $"\"{chillerIndexInfo.Value}\"";
-                        string chillerTypeFormatted = chillerTypeInfo.IsNumeric ? chillerTypeInfo.Value : $"\"{chillerTypeInfo.Value}\"";
-                        result.AppendLine($"\"Chiller\".Dev[{chillerIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Chiller\".Dev[{chillerIndexFormatted}].CfgType := {chillerTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Lifter: Dev[столбец AT(45)], CfgType из столбца AS(44)
-                    CellValueInfo lifterIndexInfo = GetCellValueInfo(row.GetCell(45));
-                    CellValueInfo lifterTypeInfo = GetCellValueInfo(row.GetCell(44));
-                    if (!string.IsNullOrEmpty(lifterIndexInfo.Value) && !string.IsNullOrEmpty(lifterTypeInfo.Value))
-                    {
-                        string lifterIndexFormatted = lifterIndexInfo.IsNumeric ? lifterIndexInfo.Value : $"\"{lifterIndexInfo.Value}\"";
-                        string lifterTypeFormatted = lifterTypeInfo.IsNumeric ? lifterTypeInfo.Value : $"\"{lifterTypeInfo.Value}\"";
-                        result.AppendLine($"\"Lifter\".Dev[{lifterIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Lifter\".Dev[{lifterIndexFormatted}].CfgType := {lifterTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    // Vent: Dev[столбец AV(47)], CfgType из столбца AU(46)
-                    CellValueInfo ventIndexInfo = GetCellValueInfo(row.GetCell(47));
-                    CellValueInfo ventTypeInfo = GetCellValueInfo(row.GetCell(46));
-                    if (!string.IsNullOrEmpty(ventIndexInfo.Value) && !string.IsNullOrEmpty(ventTypeInfo.Value))
-                    {
-                        string ventIndexFormatted = ventIndexInfo.IsNumeric ? ventIndexInfo.Value : $"\"{ventIndexInfo.Value}\"";
-                        string ventTypeFormatted = ventTypeInfo.IsNumeric ? ventTypeInfo.Value : $"\"{ventTypeInfo.Value}\"";
-                        result.AppendLine($"\"Vent\".Dev[{ventIndexFormatted}].CfgPlace := {placeFormatted};");
-                        result.AppendLine($"\"Vent\".Dev[{ventIndexFormatted}].CfgType := {ventTypeFormatted};");
-                        totalRecords += 2;
-                    }
-                    
-                    result.AppendLine();
-                }
-                
-                Log2($"✅ Обработано записей: {totalRecords}");
-            }
-            
             return result.ToString();
         }
         
@@ -1010,20 +687,6 @@ namespace MiniTest
             }
         }
         
-        // Записывает сообщение в лог второй вкладки
-        private void Log2(string message)
-        {
-            if (rtbLog2.InvokeRequired)
-            {
-                rtbLog2.Invoke(new Action<string>(Log2), message);
-            }
-            else
-            {
-                rtbLog2.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
-                rtbLog2.ScrollToCaret();
-                lblStatus.Text = message;
-            }
-        }
         
         // ========== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ ==========
         
