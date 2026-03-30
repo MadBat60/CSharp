@@ -464,7 +464,7 @@ namespace MiniTest
 
             btnSaveConfig = new Button();
             btnSaveConfig.Text = "Сохранить";
-            btnSaveConfig.Location = new Point(480, 30);
+            btnSaveConfig.Location = new Point(560, 15);
             btnSaveConfig.Size = new Size(100, 35);
             btnSaveConfig.BackColor = Color.FromArgb(33, 150, 243);
             btnSaveConfig.ForeColor = Color.White;
@@ -472,7 +472,7 @@ namespace MiniTest
 
             btnResetConfig = new Button();
             btnResetConfig.Text = "Сброс";
-            btnResetConfig.Location = new Point(590, 30);
+            btnResetConfig.Location = new Point(670, 15);
             btnResetConfig.Size = new Size(80, 35);
             btnResetConfig.BackColor = Color.FromArgb(244, 67, 54);
             btnResetConfig.ForeColor = Color.White;
