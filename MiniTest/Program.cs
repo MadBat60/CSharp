@@ -308,25 +308,25 @@ namespace MiniTest
         {
             devices = new List<Device>();
             // Маппинг: Имя, Комментарий, Индекс колонки Типа, Индекс колонки Dev (Индекса)
-            // Столбцы: A(0), ..., M(12), N(13), O(14), P(15) ...
-            devices.Add(new Device("Doliv", "Долив", 12, 13));       // M, N
-            devices.Add(new Device("Tmpr", "Температура", 14, 15));  // O, P
-            devices.Add(new Device("Cover", "Крышка", 16, 17));      // Q, R
-            devices.Add(new Device("Jr", "Жироуловитель", 18, 19));  // S, T
-            devices.Add(new Device("Mixer", "Перемешивание", 20, 21)); // U, V
-            devices.Add(new Device("Vip", "Выпрямитель", 22, 23));   // W, X
-            devices.Add(new Device("Filtr", "Фильтрование", 24, 25)); // Y, Z
-            devices.Add(new Device("Doser", "Дозирование", 26, 27)); // AA, AB
-            devices.Add(new Device("Shower", "Душирование", 28, 29)); // AC, AD
-            devices.Add(new Device("Pok", "Качание", 30, 31));       // AE, AF
-            devices.Add(new Device("Dry", "Сушилка", 32, 33));       // AG, AH
-            devices.Add(new Device("SafetyBar", "Барьер безопасности", 34, 35)); // AI, AJ
-            devices.Add(new Device("Sink", "Слив", 36, 37));         // AK, AL
-            devices.Add(new Device("Blower", "Воздуходувка", 38, 39)); // AM, AN
-            devices.Add(new Device("BarRot", "Вращение барабанов", 40, 41)); // AO, AP
-            devices.Add(new Device("Chiller", "Чиллер", 42, 43));    // AQ, AR
-            devices.Add(new Device("Lifter", "Подъемник", 44, 45));  // AS, AT
-            devices.Add(new Device("Vent", "Вентиляция", 46, 47));   // AU, AV
+            // Столбцы: A(0), ..., N(13), O(14), P(15), Q(16) ...
+            devices.Add(new Device("Doliv", "Долив", 13, 14));       // N, O
+            devices.Add(new Device("Tmpr", "Температура", 15, 16));  // O, P -> P, Q
+            devices.Add(new Device("Cover", "Крышка", 17, 18));      // Q, R -> R, S
+            devices.Add(new Device("Jr", "Жироуловитель", 19, 20));  // S, T -> T, U
+            devices.Add(new Device("Mixer", "Перемешивание", 21, 22)); // U, V -> V, W
+            devices.Add(new Device("Vip", "Выпрямитель", 23, 24));   // W, X -> X, Y
+            devices.Add(new Device("Filtr", "Фильтрование", 25, 26)); // Y, Z -> Z, AA
+            devices.Add(new Device("Doser", "Дозирование", 27, 28)); // AA, AB -> AB, AC
+            devices.Add(new Device("Shower", "Душирование", 29, 30)); // AC, AD -> AD, AE
+            devices.Add(new Device("Pok", "Качание", 31, 32));       // AE, AF -> AF, AG
+            devices.Add(new Device("Dry", "Сушилка", 33, 34));       // AG, AH -> AH, AI
+            devices.Add(new Device("SafetyBar", "Барьер безопасности", 35, 36)); // AI, AJ -> AJ, AK
+            devices.Add(new Device("Sink", "Слив", 37, 38));         // AK, AL -> AL, AM
+            devices.Add(new Device("Blower", "Воздуходувка", 39, 40)); // AM, AN -> AN, AO
+            devices.Add(new Device("BarRot", "Вращение барабанов", 41, 42)); // AO, AP -> AP, AQ
+            devices.Add(new Device("Chiller", "Чиллер", 43, 44));    // AQ, AR -> AR, AS
+            devices.Add(new Device("Lifter", "Подъемник", 45, 46));  // AS, AT -> AT, AU
+            devices.Add(new Device("Vent", "Вентиляция", 47, 48));   // AU, AV -> AV, AW
         }
 
         private void InitializeManualTab()
