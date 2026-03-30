@@ -26,6 +26,8 @@ namespace MiniTest
         private TabControl tabControl;
         private TabPage tabSpec;
         private TabPage tabIO;
+        private TabPage tabManual;
+        private TabPage tabConfig;
 
         // Элементы вкладки "Спецификация"
         private TextBox txtExcelPath;
@@ -47,6 +49,23 @@ namespace MiniTest
         private Button btnGenerate2;
         private RichTextBox rtbLog2;
 
+        // Элементы вкладки "Ручная конфигурация"
+        private Dictionary<string, NumericUpDown> manualInputs = new Dictionary<string, NumericUpDown>();
+        private Button btnGenerateManual;
+        private RichTextBox rtbLogManual;
+
+        // Элементы вкладки "Конфигуратор устройств"
+        private NumericUpDown numConfigPlace;
+        private ComboBox cmbConfigDevice;
+        private NumericUpDown numConfigIndex;
+        private NumericUpDown numConfigType;
+        private Button btnSaveConfig;
+        private Button btnResetConfig;
+        private Button btnGenerateConfig;
+        private Label lblConfigCount;
+        private RichTextBox rtbLogConfig;
+        private List<DeviceConfig> savedConfigs = new List<DeviceConfig>();
+
         // Общие элементы
         private Button btnExit;
         private Label lblStatus;
@@ -57,6 +76,8 @@ namespace MiniTest
         {
             InitializeComponent();
             InitializeDevices();
+            InitializeManualTab();
+            InitializeConfigTab();
         }
 
         private void InitializeComponent()
@@ -77,8 +98,16 @@ namespace MiniTest
             tabIO = new TabPage();
             tabIO.Text = "Ввод-вывод";
 
+            tabManual = new TabPage();
+            tabManual.Text = "Ручная конфигурация";
+
+            tabConfig = new TabPage();
+            tabConfig.Text = "Конфигуратор устройств";
+
             tabControl.Controls.Add(tabSpec);
             tabControl.Controls.Add(tabIO);
+            tabControl.Controls.Add(tabManual);
+            tabControl.Controls.Add(tabConfig);
 
             SetupSpecTab();
             SetupIOTab();
@@ -298,6 +327,287 @@ namespace MiniTest
             devices.Add(new Device("Chiller", "Чиллер", 42, 43));    // AQ, AR
             devices.Add(new Device("Lifter", "Подъемник", 44, 45));  // AS, AT
             devices.Add(new Device("Vent", "Вентиляция", 46, 47));   // AU, AV
+        }
+
+        private void InitializeManualTab()
+        {
+            int y = 15;
+            int colWidth = 280;
+            int labelWidth = 200;
+            int inputWidth = 70;
+            
+            // Список параметров для ручной конфигурации
+            var manualParams = new List<(string Label, string Code)>
+            {
+                ("Число панелей оператора:", "MaxOP"),
+                ("Число рядов ванн:", "MaxRow"),
+                ("Число автооператоров:", "MaxAO"),
+                ("Число тележек:", "MaxCart"),
+                ("Число ванн:", "MaxVann"),
+                ("Число доливов:", "MaxDoliv"),
+                ("Число нагревов/охлаждений:", "MaxTemperature"),
+                ("Число крышек:", "MaxCover"),
+                ("Число жироуловителей:", "MaxJr"),
+                ("Число перемешиваний:", "MaxMixer"),
+                ("Число выпрямителей:", "MaxVip"),
+                ("Число фильтрований:", "MaxFiltr"),
+                ("Число дозаторов:", "MaxDoser"),
+                ("Число душирований:", "MaxShower"),
+                ("Число качалок:", "MaxPok"),
+                ("Число сушилок:", "MaxDry"),
+                ("Число сливов:", "MaxSink"),
+                ("Число ПИД-регуляций:", "MaxPID"),
+                ("Число воздуходувок:", "MaxBlower"),
+                ("Число чиллеров:", "MaxChiller"),
+                ("Число барьеров безопасности:", "MaxSafetyBar"),
+                ("Число подъемников:", "MaxLifter")
+            };
+
+            foreach (var param in manualParams)
+            {
+                int col = (manualParams.IndexOf(param) / 11) * 430;
+                int rowY = 15 + ((manualParams.IndexOf(param) % 11) * 35);
+                
+                Label lbl = new Label();
+                lbl.Text = param.Label;
+                lbl.Location = new Point(10 + col, rowY);
+                lbl.Size = new Size(labelWidth, 25);
+                
+                NumericUpDown num = new NumericUpDown();
+                num.Location = new Point(10 + labelWidth + col, rowY);
+                num.Size = new Size(inputWidth, 25);
+                num.Minimum = 0;
+                num.Maximum = 1000;
+                num.Value = 0;
+                
+                manualInputs[param.Code] = num;
+                
+                tabManual.Controls.Add(lbl);
+                tabManual.Controls.Add(num);
+            }
+
+            btnGenerateManual = new Button();
+            btnGenerateManual.Text = "Сгенерировать";
+            btnGenerateManual.Location = new Point(350, 420);
+            btnGenerateManual.Size = new Size(160, 35);
+            btnGenerateManual.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerateManual.ForeColor = Color.White;
+            btnGenerateManual.Click += BtnGenerateManual_Click;
+
+            Label lblLogManual = new Label();
+            lblLogManual.Text = "Лог:";
+            lblLogManual.Location = new Point(10, 465);
+            lblLogManual.Size = new Size(50, 20);
+
+            rtbLogManual = new RichTextBox();
+            rtbLogManual.Location = new Point(10, 485);
+            rtbLogManual.Size = new Size(830, 80);
+            rtbLogManual.ReadOnly = true;
+            rtbLogManual.BackColor = Color.Black;
+            rtbLogManual.ForeColor = Color.LightGreen;
+            rtbLogManual.Font = new Font("Consolas", 9);
+
+            tabManual.Controls.AddRange(new Control[] { btnGenerateManual, lblLogManual, rtbLogManual });
+        }
+
+        private void InitializeConfigTab()
+        {
+            Label lblPlace = new Label();
+            lblPlace.Text = "Номер позиции:";
+            lblPlace.Location = new Point(10, 15);
+            lblPlace.Size = new Size(120, 25);
+
+            numConfigPlace = new NumericUpDown();
+            numConfigPlace.Location = new Point(140, 15);
+            numConfigPlace.Size = new Size(80, 25);
+            numConfigPlace.Minimum = 0;
+            numConfigPlace.Maximum = 1000;
+            numConfigPlace.Value = 0;
+
+            Label lblDevice = new Label();
+            lblDevice.Text = "Устройство:";
+            lblDevice.Location = new Point(240, 15);
+            lblDevice.Size = new Size(100, 25);
+
+            cmbConfigDevice = new ComboBox();
+            cmbConfigDevice.Location = new Point(350, 15);
+            cmbConfigDevice.Size = new Size(200, 25);
+            cmbConfigDevice.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (var dev in devices)
+            {
+                cmbConfigDevice.Items.Add(dev.Comment);
+            }
+
+            Label lblIndex = new Label();
+            lblIndex.Text = "Порядковый номер:";
+            lblIndex.Location = new Point(10, 50);
+            lblIndex.Size = new Size(120, 25);
+
+            numConfigIndex = new NumericUpDown();
+            numConfigIndex.Location = new Point(140, 50);
+            numConfigIndex.Size = new Size(80, 25);
+            numConfigIndex.Minimum = 0;
+            numConfigIndex.Maximum = 1000;
+            numConfigIndex.Value = 0;
+
+            Label lblType = new Label();
+            lblType.Text = "Тип устройства:";
+            lblType.Location = new Point(240, 50);
+            lblType.Size = new Size(100, 25);
+
+            numConfigType = new NumericUpDown();
+            numConfigType.Location = new Point(350, 50);
+            numConfigType.Size = new Size(80, 25);
+            numConfigType.Minimum = 0;
+            numConfigType.Maximum = 100;
+            numConfigType.Value = 0;
+
+            btnSaveConfig = new Button();
+            btnSaveConfig.Text = "Сохранить";
+            btnSaveConfig.Location = new Point(480, 30);
+            btnSaveConfig.Size = new Size(100, 35);
+            btnSaveConfig.BackColor = Color.FromArgb(33, 150, 243);
+            btnSaveConfig.ForeColor = Color.White;
+            btnSaveConfig.Click += BtnSaveConfig_Click;
+
+            btnResetConfig = new Button();
+            btnResetConfig.Text = "Сброс";
+            btnResetConfig.Location = new Point(590, 30);
+            btnResetConfig.Size = new Size(80, 35);
+            btnResetConfig.BackColor = Color.FromArgb(244, 67, 54);
+            btnResetConfig.ForeColor = Color.White;
+            btnResetConfig.Click += BtnResetConfig_Click;
+
+            btnGenerateConfig = new Button();
+            btnGenerateConfig.Text = "Сгенерировать код устройств";
+            btnGenerateConfig.Location = new Point(350, 90);
+            btnGenerateConfig.Size = new Size(200, 35);
+            btnGenerateConfig.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerateConfig.ForeColor = Color.White;
+            btnGenerateConfig.Click += BtnGenerateConfig_Click;
+
+            lblConfigCount = new Label();
+            lblConfigCount.Text = "Сохранено устройств: 0";
+            lblConfigCount.Location = new Point(10, 90);
+            lblConfigCount.Size = new Size(200, 25);
+
+            Label lblLogConfig = new Label();
+            lblLogConfig.Text = "Лог:";
+            lblLogConfig.Location = new Point(10, 130);
+            lblLogConfig.Size = new Size(50, 20);
+
+            rtbLogConfig = new RichTextBox();
+            rtbLogConfig.Location = new Point(10, 150);
+            rtbLogConfig.Size = new Size(830, 415);
+            rtbLogConfig.ReadOnly = true;
+            rtbLogConfig.BackColor = Color.Black;
+            rtbLogConfig.ForeColor = Color.LightGreen;
+            rtbLogConfig.Font = new Font("Consolas", 9);
+
+            tabConfig.Controls.AddRange(new Control[] {
+                lblPlace, numConfigPlace, lblDevice, cmbConfigDevice,
+                lblIndex, numConfigIndex, lblType, numConfigType,
+                btnSaveConfig, btnResetConfig, btnGenerateConfig,
+                lblConfigCount, lblLogConfig, rtbLogConfig
+            });
+        }
+
+        private void BtnGenerateManual_Click(object sender, EventArgs e)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var kvp in manualInputs)
+            {
+                sb.AppendLine($"\"Options\".Count.{kvp.Key} := {kvp.Value.Value};");
+            }
+            
+            LogManual("✅ Код сгенерирован!");
+            
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                dlg.DefaultExt = "txt";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    File.WriteAllText(dlg.FileName, sb.ToString(), Encoding.UTF8);
+                    LogManual($"📄 Файл сохранен: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnSaveConfig_Click(object sender, EventArgs e)
+        {
+            if (cmbConfigDevice.SelectedIndex < 0)
+            {
+                MessageBox.Show("Выберите устройство!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string deviceName = devices[cmbConfigDevice.SelectedIndex].Name;
+            int place = (int)numConfigPlace.Value;
+            int index = (int)numConfigIndex.Value;
+            int type = (int)numConfigType.Value;
+
+            // Проверка на дубликат
+            foreach (var cfg in savedConfigs)
+            {
+                if (cfg.DeviceName == deviceName && cfg.Index == index)
+                {
+                    MessageBox.Show($"Устройство {deviceName}[{index}] уже сохранено!", "Дубликат", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
+            savedConfigs.Add(new DeviceConfig(deviceName, place, index, type));
+            lblConfigCount.Text = $"Сохранено устройств: {savedConfigs.Count}";
+            LogConfig($"✅ Сохранено: {deviceName}.Dev[{index}].CfgPlace := {place}; {deviceName}.Dev[{index}].CfgType := {type};");
+        }
+
+        private void BtnResetConfig_Click(object sender, EventArgs e)
+        {
+            savedConfigs.Clear();
+            lblConfigCount.Text = "Сохранено устройств: 0";
+            rtbLogConfig.Clear();
+            LogConfig("🔄 Сброс выполнен.");
+        }
+
+        private void BtnGenerateConfig_Click(object sender, EventArgs e)
+        {
+            if (savedConfigs.Count == 0)
+            {
+                MessageBox.Show("Нет сохраненных устройств!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var cfg in savedConfigs)
+            {
+                sb.AppendLine($"\"{cfg.DeviceName}\".Dev[{cfg.Index}].CfgPlace := {cfg.Place};");
+                sb.AppendLine($"\"{cfg.DeviceName}\".Dev[{cfg.Index}].CfgType := {cfg.Type};");
+            }
+
+            LogConfig("✅ Код устройств сгенерирован!");
+
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                dlg.DefaultExt = "txt";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    File.WriteAllText(dlg.FileName, sb.ToString(), Encoding.UTF8);
+                    LogConfig($"📄 Файл сохранен: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void LogManual(string message)
+        {
+            rtbLogManual.AppendText(message + Environment.NewLine);
+        }
+
+        private void LogConfig(string message)
+        {
+            rtbLogConfig.AppendText(message + Environment.NewLine);
         }
 
         private void BtnBrowseExcel_Click(object sender, EventArgs e)
@@ -592,6 +902,22 @@ namespace MiniTest
             {
                 Value = value;
                 IsNumeric = isNumeric;
+            }
+        }
+
+        class DeviceConfig
+        {
+            public string DeviceName { get; set; }
+            public int Place { get; set; }
+            public int Index { get; set; }
+            public int Type { get; set; }
+
+            public DeviceConfig(string deviceName, int place, int index, int type)
+            {
+                DeviceName = deviceName;
+                Place = place;
+                Index = index;
+                Type = type;
             }
         }
     }
