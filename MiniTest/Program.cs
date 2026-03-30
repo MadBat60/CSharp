@@ -801,7 +801,6 @@ namespace MiniTest
 
                 // Вставка блока Options.Count в начало результата
                 StringBuilder header = new StringBuilder();
-                header.AppendLine("\"Options\".Count := RECORD");
                 
                 foreach (var dev in devices)
                 {
@@ -810,7 +809,6 @@ namespace MiniTest
                     header.AppendLine($"\"Options\".Count.{varName} := {maxIndices[dev.Name]};");
                 }
                 
-                header.AppendLine("END_RECORD;");
                 header.AppendLine();
 
                 // Объединяем заголовок и основной код
