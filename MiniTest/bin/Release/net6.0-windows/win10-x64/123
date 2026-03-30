@@ -1,0 +1,205 @@
+﻿// SCL код сгенерирован автоматически
+// Дата генерации: 30.03.2026 10:54:37
+// Диапазон строк: 8 - 48
+// Файл источник: Спецификация позиций _DemoLine_v4.xlsx
+
+// Долив
+"Doliv".Dev[1].CfgPlace := 2;
+"Doliv".Dev[1].CfgType := 23;
+"Doliv".Dev[2].CfgPlace := 4;
+"Doliv".Dev[2].CfgType := 15;
+"Doliv".Dev[3].CfgPlace := 7;
+"Doliv".Dev[3].CfgType := 1;
+"Doliv".Dev[4].CfgPlace := 10;
+"Doliv".Dev[4].CfgType := 1;
+"Doliv".Dev[5].CfgPlace := 11;
+"Doliv".Dev[5].CfgType := 1;
+"Doliv".Dev[6].CfgPlace := 12;
+"Doliv".Dev[6].CfgType := 1;
+"Doliv".Dev[7].CfgPlace := 19;
+"Doliv".Dev[7].CfgType := 1;
+"Doliv".Dev[8].CfgPlace := 24;
+"Doliv".Dev[8].CfgType := 18;
+"Doliv".Dev[9].CfgPlace := 29;
+"Doliv".Dev[9].CfgType := 1;
+"Doliv".Dev[10].CfgPlace := 30;
+"Doliv".Dev[10].CfgType := 3;
+"Doliv".Dev[11].CfgPlace := 32;
+"Doliv".Dev[11].CfgType := 1;
+"Doliv".Dev[12].CfgPlace := 37;
+"Doliv".Dev[12].CfgType := 18;
+
+// Температура
+"Tmpr".Dev[1].CfgPlace := 2;
+"Tmpr".Dev[1].CfgType := 1;
+"Tmpr".Dev[2].CfgPlace := 3;
+"Tmpr".Dev[2].CfgType := 1;
+"Tmpr".Dev[3].CfgPlace := 8;
+"Tmpr".Dev[3].CfgType := 6;
+"Tmpr".Dev[4].CfgPlace := 9;
+"Tmpr".Dev[4].CfgType := 6;
+"Tmpr".Dev[5].CfgPlace := 23;
+"Tmpr".Dev[5].CfgType := 1;
+"Tmpr".Dev[6].CfgPlace := 24;
+"Tmpr".Dev[6].CfgType := 1;
+"Tmpr".Dev[7].CfgPlace := 30;
+"Tmpr".Dev[7].CfgType := 1;
+"Tmpr".Dev[8].CfgPlace := 34;
+"Tmpr".Dev[8].CfgType := 1;
+"Tmpr".Dev[9].CfgPlace := 36;
+"Tmpr".Dev[9].CfgType := 1;
+"Tmpr".Dev[10].CfgPlace := 37;
+"Tmpr".Dev[10].CfgType := 1;
+"Tmpr".Dev[11].CfgPlace := 39;
+"Tmpr".Dev[11].CfgType := 11;
+
+// Крышка
+"Cover".Dev[1].CfgPlace := 2;
+"Cover".Dev[1].CfgType := 3;
+"Cover".Dev[2].CfgPlace := 3;
+"Cover".Dev[2].CfgType := 3;
+"Cover".Dev[3].CfgPlace := 5;
+"Cover".Dev[3].CfgType := 3;
+"Cover".Dev[4].CfgPlace := 8;
+"Cover".Dev[4].CfgType := 3;
+"Cover".Dev[5].CfgPlace := 9;
+"Cover".Dev[5].CfgType := 3;
+"Cover".Dev[6].CfgPlace := 16;
+"Cover".Dev[6].CfgType := 3;
+"Cover".Dev[7].CfgPlace := 20;
+"Cover".Dev[7].CfgType := 3;
+"Cover".Dev[8].CfgPlace := 21;
+"Cover".Dev[8].CfgType := 3;
+"Cover".Dev[9].CfgPlace := 22;
+"Cover".Dev[9].CfgType := 3;
+"Cover".Dev[10].CfgPlace := 23;
+"Cover".Dev[10].CfgType := 3;
+"Cover".Dev[11].CfgPlace := 24;
+"Cover".Dev[11].CfgType := 3;
+"Cover".Dev[12].CfgPlace := 28;
+"Cover".Dev[12].CfgType := 3;
+"Cover".Dev[13].CfgPlace := 30;
+"Cover".Dev[13].CfgType := 3;
+"Cover".Dev[14].CfgPlace := 34;
+"Cover".Dev[14].CfgType := 3;
+"Cover".Dev[15].CfgPlace := 35;
+"Cover".Dev[15].CfgType := 3;
+"Cover".Dev[16].CfgPlace := 36;
+"Cover".Dev[16].CfgType := 3;
+"Cover".Dev[17].CfgPlace := 37;
+"Cover".Dev[17].CfgType := 3;
+
+// Жироуловитель
+"Jr".Dev[1].CfgPlace := 2;
+"Jr".Dev[1].CfgType := 2;
+
+// Перемешивание
+"Mixer".Dev[1].CfgPlace := 2;
+"Mixer".Dev[1].CfgType := 1;
+"Mixer".Dev[2].CfgPlace := 3;
+"Mixer".Dev[2].CfgType := 1;
+"Mixer".Dev[3].CfgPlace := 4;
+"Mixer".Dev[3].CfgType := 1;
+"Mixer".Dev[4].CfgPlace := 5;
+"Mixer".Dev[4].CfgType := 1;
+"Mixer".Dev[5].CfgPlace := 6;
+"Mixer".Dev[5].CfgType := 1;
+"Mixer".Dev[6].CfgPlace := 7;
+"Mixer".Dev[6].CfgType := 1;
+"Mixer".Dev[7].CfgPlace := 8;
+"Mixer".Dev[7].CfgType := 1;
+"Mixer".Dev[8].CfgPlace := 9;
+"Mixer".Dev[8].CfgType := 1;
+"Mixer".Dev[9].CfgPlace := 10;
+"Mixer".Dev[9].CfgType := 1;
+"Mixer".Dev[10].CfgPlace := 11;
+"Mixer".Dev[10].CfgType := 1;
+"Mixer".Dev[11].CfgPlace := 12;
+"Mixer".Dev[11].CfgType := 1;
+"Mixer".Dev[12].CfgPlace := 16;
+"Mixer".Dev[12].CfgType := 1;
+"Mixer".Dev[13].CfgPlace := 17;
+"Mixer".Dev[13].CfgType := 1;
+"Mixer".Dev[14].CfgPlace := 18;
+"Mixer".Dev[14].CfgType := 1;
+"Mixer".Dev[15].CfgPlace := 19;
+"Mixer".Dev[15].CfgType := 1;
+"Mixer".Dev[16].CfgPlace := 20;
+"Mixer".Dev[16].CfgType := 1;
+"Mixer".Dev[17].CfgPlace := 21;
+"Mixer".Dev[17].CfgType := 1;
+"Mixer".Dev[18].CfgPlace := 22;
+"Mixer".Dev[18].CfgType := 1;
+"Mixer".Dev[19].CfgPlace := 23;
+"Mixer".Dev[19].CfgType := 1;
+"Mixer".Dev[20].CfgPlace := 24;
+"Mixer".Dev[20].CfgType := 1;
+"Mixer".Dev[21].CfgPlace := 28;
+"Mixer".Dev[21].CfgType := 1;
+"Mixer".Dev[22].CfgPlace := 29;
+"Mixer".Dev[22].CfgType := 1;
+"Mixer".Dev[23].CfgPlace := 31;
+"Mixer".Dev[23].CfgType := 1;
+"Mixer".Dev[24].CfgPlace := 32;
+"Mixer".Dev[24].CfgType := 1;
+"Mixer".Dev[25].CfgPlace := 33;
+"Mixer".Dev[25].CfgType := 1;
+"Mixer".Dev[26].CfgPlace := 34;
+"Mixer".Dev[26].CfgType := 1;
+"Mixer".Dev[27].CfgPlace := 35;
+"Mixer".Dev[27].CfgType := 1;
+"Mixer".Dev[28].CfgPlace := 36;
+"Mixer".Dev[28].CfgType := 1;
+"Mixer".Dev[29].CfgPlace := 37;
+"Mixer".Dev[29].CfgType := 1;
+
+// Выпрямитель
+"Vip".Dev[1].CfgPlace := 2;
+"Vip".Dev[1].CfgType := 2;
+"Vip".Dev[2].CfgPlace := 8;
+"Vip".Dev[2].CfgType := 2;
+"Vip".Dev[3].CfgPlace := 9;
+"Vip".Dev[3].CfgType := 2;
+"Vip".Dev[4].CfgPlace := 16;
+"Vip".Dev[4].CfgType := 2;
+
+// Фильтрование
+"Filtr".Dev[1].CfgPlace := 8;
+"Filtr".Dev[1].CfgType := 1;
+"Filtr".Dev[2].CfgPlace := 9;
+"Filtr".Dev[2].CfgType := 1;
+"Filtr".Dev[3].CfgPlace := 16;
+"Filtr".Dev[3].CfgType := 1;
+
+// Дозирование
+
+// Душирование
+
+// Качание
+
+// Сушилка
+
+// Барьер безопасности
+
+// Слив
+
+// Воздуходувка
+
+// Вращение барабанов
+"BarRot".Dev[1].CfgPlace := 40;
+"BarRot".Dev[1].CfgType := 1;
+
+// Чиллер
+"Chiller".Dev[1].CfgPlace := 40;
+"Chiller".Dev[1].CfgType := 1;
+
+// Подъемник
+"Lifter".Dev[2].CfgPlace := 25;
+"Lifter".Dev[2].CfgType := 1;
+"Lifter".Dev[3].CfgPlace := 38;
+"Lifter".Dev[3].CfgType := 1;
+
+// Вентиляция
+"Vent".Dev[1].CfgPlace := 41;
+"Vent".Dev[1].CfgType := 1;
+
