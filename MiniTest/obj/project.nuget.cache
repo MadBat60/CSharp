@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "tAxJLtpPP2g=",
+  "dgSpecHash": "oOv1lRA7gkE=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Nick\\Desktop\\MiniTest\\MiniTest.csproj",
+  "projectFilePath": "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Nick\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
     "C:\\Users\\Nick\\.nuget\\packages\\enums.net\\5.0.0\\enums.net.5.0.0.nupkg.sha512",

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Nick\\Desktop\\MiniTest\\MiniTest.csproj": {}
+    "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Nick\\Desktop\\MiniTest\\MiniTest.csproj": {
+    "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Nick\\Desktop\\MiniTest\\MiniTest.csproj",
+        "projectUniqueName": "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj",
         "projectName": "MiniTest",
-        "projectPath": "C:\\Users\\Nick\\Desktop\\MiniTest\\MiniTest.csproj",
+        "projectPath": "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj",
         "packagesPath": "C:\\Users\\Nick\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Nick\\Desktop\\MiniTest\\obj\\",
+        "outputPath": "C:\\MyOwnRepo\\CSharp\\MiniTest\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Nick\\AppData\\Roaming\\NuGet\\NuGet.Config"
