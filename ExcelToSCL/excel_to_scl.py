@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Excel to TIA Portal SCL Code Generator
+Excel to TIA Portal SCL Code Generator v2.0
 
-Программа для парсинга таблиц Excel с разметкой системы ввода-вывода
-и генерации готового кода для TIA Portal (SCL).
+Программа для парсинга ТРЕХ таблиц Excel:
+1. Спецификация.xlsx - технологические данные (Config_Line, Config_Transport)
+2. Система ввода-вывода.xlsx - аппаратная привязка (ШС, ШСАУ)
+3. Список переменных от системы ввода-вывода.xlsx - имена переменных
+
+И генерации готового кода для TIA Portal (SCL).
 """
 
 import openpyxl
@@ -31,123 +35,253 @@ EQUIPMENT_TYPES = {
 
 
 class ExcelToSCLConverter:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.workbook = None
-        self.devices = {}  # Словарь устройств: ключ - имя устройства
-        self.modules = []  # Список всех модулей (каналов)
-        self.errors = []
+    def __init__(self, spec_file: str = None, io_file: str = None, vars_file: str = None):
+        self.spec_file = spec_file
+        self.io_file = io_file
+        self.vars_file = vars_file
         
-    def load_workbook(self):
-        """Загружает книгу и инициирует парсинг"""
-        try:
-            self.workbook = openpyxl.load_workbook(self.file_path, data_only=True)
-            self._parse_all_sheets()
-            return True
-        except Exception as e:
-            self.errors.append(f"Ошибка загрузки файла: {str(e)}")
-            return False
+        self.workbook_spec = None
+        self.workbook_io = None
+        self.workbook_vars = None
+        
+        # Данные из спецификации
+        self.spec_devices = {}  # Ключ: tech_pos -> {name, type, row, ...}
+        self.transport_devices = {}  # Ключ: name_dev -> {devices list}
+        
+        # Данные из ШС/ШСАУ
+        self.io_signals = []  # Список всех сигналов с привязкой
+        self.devices = {}  # Итоговый словарь устройств
+        self.modules = []  # Список всех модулей (каналов)
+        
+        # Переменные
+        self.variables_map = {}  # Маппинг сигналов на переменные
+        
+        self.errors = []
 
-    def _parse_all_sheets(self):
-        """Проходит по всем листам и ищет таблицы с оборудованием"""
-        if not self.workbook:
+    def load_all_workbooks(self) -> bool:
+        """Загружает все три книги"""
+        success = True
+        
+        # Загружаем Спецификацию
+        if self.spec_file and os.path.exists(self.spec_file):
+            try:
+                self.workbook_spec = openpyxl.load_workbook(self.spec_file, data_only=True)
+                self._parse_specification()
+            except Exception as e:
+                self.errors.append(f"Ошибка загрузки Спецификации: {str(e)}")
+                success = False
+        else:
+            self.errors.append("Файл Спецификации не найден")
+            success = False
+        
+        # Загружаем Систему ввода-вывода
+        if self.io_file and os.path.exists(self.io_file):
+            try:
+                self.workbook_io = openpyxl.load_workbook(self.io_file, data_only=True)
+                self._parse_io_system()
+            except Exception as e:
+                self.errors.append(f"Ошибка загрузки Системы ввода-вывода: {str(e)}")
+                success = False
+        else:
+            self.errors.append("Файл Системы ввода-вывода не найден")
+            success = False
+        
+        # Загружаем Список переменных
+        if self.vars_file and os.path.exists(self.vars_file):
+            try:
+                self.workbook_vars = openpyxl.load_workbook(self.vars_file, data_only=True)
+                self._parse_variables()
+            except Exception as e:
+                self.errors.append(f"Ошибка загрузки Списка переменных: {str(e)}")
+                success = False
+        else:
+            self.errors.append("Файл Списка переменных не найден")
+            success = False
+        
+        # Объединяем данные
+        if success:
+            self._merge_data()
+        
+        return success
+
+    def _parse_specification(self):
+        """Парсит Спецификацию (Config_Line и Config_Transport)"""
+        if not self.workbook_spec:
             return
+        
+        # Парсим Config_Transport - основные устройства
+        if 'Config_Transport' in self.workbook_spec.sheetnames:
+            ws = self.workbook_spec['Config_Transport']
+            for row_idx in range(3, ws.max_row + 1):
+                row = [cell.value for cell in ws[row_idx]]
+                
+                # Пропускаем пустые строки и разделители
+                if not any(row) or row[0] == 'Общая информация:':
+                    continue
+                
+                name = row[2] if len(row) > 2 else None  # Наименование
+                name_dev = row[3] if len(row) > 3 else None  # NameDev (Cart, AO, etc.)
+                tech_type = row[4] if len(row) > 4 else None  # Type
+                dev_id = row[5] if len(row) > 5 else None  # Id устройства
+                position = row[6] if len(row) > 6 else None  # Позиция
+                row_num = row[7] if len(row) > 7 else None  # Ряд
+                
+                if name and name_dev:
+                    key = f"{name_dev}_{position}"
+                    self.transport_devices[key] = {
+                        'name': name,
+                        'name_dev': name_dev,
+                        'type': tech_type,
+                        'id': dev_id,
+                        'position': position,
+                        'row': row_num
+                    }
+        
+        # Парсим Config_Line - оснащение ванн
+        if 'Config_Line' in self.workbook_spec.sheetnames:
+            ws = self.workbook_spec['Config_Line']
+            for row_idx in range(7, ws.max_row + 1):
+                row = [cell.value for cell in ws[row_idx]]
+                
+                num = row[1] if len(row) > 1 else None  # Num (технологический номер)
+                name = row[2] if len(row) > 2 else None  # Name
+                dopop = row[5] if len(row) > 5 else None  # DopOp (оснащение)
+                
+                if num and dopop:
+                    self.spec_devices[str(num)] = {
+                        'name': name,
+                        'dopop': dopop
+                    }
 
-        # Нас интересуют только листы ШС и ШСАУ
+    def _parse_io_system(self):
+        """Парсит Систему ввода-вывода (листы ШС и ШСАУ)"""
+        if not self.workbook_io:
+            return
+        
         target_sheets = ['ШС', 'ШСАУ']
         
         for sheet_name in target_sheets:
-            if sheet_name in self.workbook.sheetnames:
-                sheet = self.workbook[sheet_name]
-                self._parse_sheet_data(sheet, sheet_name)
-
-    def _parse_sheet_data(self, sheet, sheet_name: str):
-        """
-        Парсер листа ШС/ШСАУ.
-        Структура таблицы (начиная с строки 6-7):
-        A: шкаф | B: № п/п | C: обозн. | D: тип | E: адрес | F: № вх. | G: Device | H: Наименование сигнала | ...
-        """
-        max_row = sheet.max_row
-        
-        # Проходим по строкам данных (пропускаем заголовки до строки 6)
-        for row_idx in range(6, max_row + 1):
-            row_values = [cell.value for cell in sheet[row_idx]]
-            
-            # Пропускаем пустые строки
-            if not any(row_values):
+            if sheet_name not in self.workbook_io.sheetnames:
                 continue
             
-            # Извлекаем ключевые поля
-            # Индексы колонок (0-based): A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9
-            cabinet = row_values[0] if len(row_values) > 0 else None  # Шкаф
-            device_name_raw = row_values[6] if len(row_values) > 7 else None  # Device (колонка G)
-            signal_name = row_values[7] if len(row_values) > 7 else None  # Наименование сигнала (колонка H)
-            tech_pos = row_values[8] if len(row_values) > 8 else None  # Тех. поз. (колонка I)
-            main_pos = row_values[9] if len(row_values) > 9 else None  # № п/п основ. поз. (колонка J)
+            ws = self.workbook_io[sheet_name]
             
-            sig_type = row_values[3] if len(row_values) > 3 else None  # Тип сигнала (DI, DO, AI, AO)
-            address = row_values[4] if len(row_values) > 4 else None  # Адрес
-            channel_num = row_values[5] if len(row_values) > 5 else None  # № входа
-            
-            # Пропускаем если нет устройства или сигнала
-            if not device_name_raw and not signal_name:
-                continue
-            
-            # Определяем устройство по комбинации Device + Тех. поз.
-            if device_name_raw:
-                device_key = self._create_device_key(device_name_raw, tech_pos, sheet_name)
-            else:
-                # Пытаемся использовать последнее известное устройство или создаем новое
-                device_key = self._infer_device_key(signal_name, tech_pos, sheet_name)
-            
-            # Создаем или получаем устройство
-            if device_key not in self.devices:
-                dev_type = self._detect_device_type(device_name_raw, signal_name, tech_pos)
-                dev_name = self._format_device_name(dev_type, tech_pos, main_pos)
+            # Структура: A=шкаф, B=№п/п, C=обозн., D=тип, E=адрес, F=№вх., G=Device, H=сигнал, I=тех.поз., J=осн.поз.
+            for row_idx in range(7, ws.max_row + 1):
+                row = [cell.value for cell in ws[row_idx]]
                 
-                self.devices[device_key] = {
-                    'type': dev_type,
-                    'name': dev_name,
+                if not any(row):
+                    continue
+                
+                cabinet = row[0] if len(row) > 0 else None
+                sig_type = row[3] if len(row) > 3 else None  # DO, DI, AI, AO
+                address = row[4] if len(row) > 4 else None
+                channel = row[5] if len(row) > 5 else None
+                device_raw = row[6] if len(row) > 6 else None  # Device column
+                signal_name = row[7] if len(row) > 7 else None
+                tech_pos = row[8] if len(row) > 8 else None
+                main_pos = row[9] if len(row) > 9 else None
+                
+                # Разрешаем формулы вида =$A$7
+                if isinstance(cabinet, str) and cabinet.startswith('='):
+                    cabinet = self._resolve_formula(ws, row_idx, 0)
+                
+                self.io_signals.append({
                     'sheet': sheet_name,
                     'cabinet': cabinet,
-                    'tech_pos': tech_pos,
-                    'main_pos': main_pos,
-                    'signals': {}
-                }
-            
-            # Добавляем сигнал к устройству
-            if signal_name:
-                signal_key = f"{sig_type}_{channel_num}" if channel_num else signal_name
-                self.devices[device_key]['signals'][signal_key] = {
-                    'name': signal_name,
-                    'type': sig_type,
+                    'sig_type': sig_type,
                     'address': address,
-                    'channel': channel_num,
-                    'cabinet': cabinet
-                }
+                    'channel': channel,
+                    'device_raw': device_raw,
+                    'signal_name': signal_name,
+                    'tech_pos': tech_pos,
+                    'main_pos': main_pos
+                })
 
-    def _create_device_key(self, device_raw: Any, tech_pos: Any, sheet: str) -> str:
-        """Создает уникальный ключ для устройства"""
-        d_name = str(device_raw).strip() if device_raw else "Unknown"
-        t_pos = str(tech_pos).strip() if tech_pos else ""
-        return f"{sheet}_{d_name}_{t_pos}"
+    def _resolve_formula(self, ws, row_idx, col_idx):
+        """Пытается разрешить простую формулу Excel"""
+        # Для упрощения возвращаем значение из первой строки данных
+        return ws.cell(row=7, column=col_idx+1).value
 
-    def _infer_device_key(self, signal_name: Any, tech_pos: Any, sheet: str) -> str:
-        """Пытается определить устройство по сигналу"""
-        t_pos = str(tech_pos).strip() if tech_pos else "0"
-        return f"{sheet}_Group_{t_pos}"
-
-    def _detect_device_type(self, device_raw: Any, signal_name: Any, tech_pos: Any) -> str:
-        """Определяет тип устройства по названию и сигналам"""
-        text = ""
-        if device_raw:
-            text += str(device_raw).lower()
-        if signal_name:
-            text += " " + str(signal_name).lower()
+    def _parse_variables(self):
+        """Парсит Список переменных"""
+        if not self.workbook_vars:
+            return
         
-        if re.search(r'долив|дозир|dosing', text):
-            return 'DOZING'
-        elif re.search(r'температур|temp|нагрев|охлажд', text):
+        if 'Лист1' in self.workbook_vars.sheetnames:
+            ws = self.workbook_vars['Лист1']
+            
+            # Структура: A=DI описание, B=DI переменная, D=DO описание, E=DO переменная, G=AI описание, H=AI переменная
+            for row_idx in range(2, ws.max_row + 1):
+                row = [cell.value for cell in ws[row_idx]]
+                
+                # DI
+                di_desc = row[0] if len(row) > 0 else None
+                di_var = row[1] if len(row) > 1 else None
+                
+                # DO
+                do_desc = row[3] if len(row) > 3 else None
+                do_var = row[4] if len(row) > 4 else None
+                
+                # AI
+                ai_desc = row[6] if len(row) > 6 else None
+                ai_var = row[7] if len(row) > 7 else None
+                
+                if di_desc and di_var:
+                    self.variables_map[di_desc] = {'var': di_var, 'type': 'DI'}
+                if do_desc and do_var:
+                    self.variables_map[do_desc] = {'var': do_var, 'type': 'DO'}
+                if ai_desc and ai_var:
+                    self.variables_map[ai_desc] = {'var': ai_var, 'type': 'AI'}
+
+    def _merge_data(self):
+        """Объединяет данные из всех источников в итоговые устройства"""
+        # Группируем сигналы по tech_pos + device_raw
+        signals_by_device = defaultdict(list)
+        
+        for sig in self.io_signals:
+            tech_pos = str(sig['tech_pos']).strip() if sig['tech_pos'] else ''
+            device_raw = str(sig['device_raw']).strip() if sig['device_raw'] else ''
+            key = f"{device_raw}_{tech_pos}"
+            signals_by_device[key].append(sig)
+        
+        # Создаем устройства на основе сигналов
+        for device_key, signals in signals_by_device.items():
+            if not signals:
+                continue
+            
+            first_sig = signals[0]
+            device_raw = first_sig['device_raw']
+            tech_pos = first_sig['tech_pos']
+            main_pos = first_sig['main_pos']
+            
+            # Определяем тип устройства
+            dev_type = self._detect_device_type(device_raw, signals)
+            
+            # Формируем имя
+            dev_name = self._format_device_name(dev_type, tech_pos, main_pos)
+            
+            # Создаем устройство
+            self.devices[device_key] = {
+                'type': dev_type,
+                'name': dev_name,
+                'tech_pos': tech_pos,
+                'main_pos': main_pos,
+                'device_raw': device_raw,
+                'signals': [],
+                'cabinet': first_sig['cabinet']
+            }
+            
+            # Добавляем сигналы
+            for sig in signals:
+                var_info = self.variables_map.get(sig['signal_name'])
+                self.devices[device_key]['signals'].append({
+                    'name': sig['signal_name'],
+                    'type': sig['sig_type'],
+                    'address': sig['address'],
+                    'channel': sig['channel'],
+                    'variable': var_info['var'] if var_info else None
+                })
             return 'TEMP'
         elif re.search(r'крышк|cover|cap|лоток', text):
             return 'COVER'

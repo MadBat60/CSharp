@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TIA Portal SCL Code Generator - Web Interface
-Генератор кода для TIA Portal из Excel файлов с веб-интерфейсом
+TIA Portal SCL Code Generator - Web Interface (v2.0)
+Генератор кода для TIA Portal из ТРЕХ Excel файлов:
+1. Спецификация.xlsx - технологические данные (Config_Line, Config_Transport)
+2. Система ввода-вывода.xlsx - аппаратная привязка (ШС, ШСАУ)
+3. Список переменных от системы ввода-вывода.xlsx - имена переменных
 """
 
 import os
@@ -34,7 +37,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIA Portal SCL Generator</title>
+    <title>TIA Portal SCL Generator v2.0</title>
     <style>
         * {
             margin: 0;
@@ -50,7 +53,7 @@ HTML_TEMPLATE = """
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -79,37 +82,59 @@ HTML_TEMPLATE = """
             padding: 40px;
         }
         
-        .upload-section {
-            border: 3px dashed #3498db;
-            border-radius: 10px;
-            padding: 40px;
-            text-align: center;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
         
-        .upload-section:hover {
+        .upload-card {
+            border: 3px dashed #3498db;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-card:hover {
             border-color: #2ecc71;
             background: #e8f8f0;
         }
         
-        .upload-section.dragover {
+        .upload-card.dragover {
+            border-color: #e74c3c;
+            background: #fdedec;
+        }
+        
+        .upload-card.required {
             border-color: #e74c3c;
             background: #fdedec;
         }
         
         .upload-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .upload-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .upload-card p {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
         }
         
         .btn {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
+            padding: 12px 30px;
+            font-size: 1em;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -207,7 +232,7 @@ HTML_TEMPLATE = """
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             margin: 20px 0;
         }
@@ -228,6 +253,7 @@ HTML_TEMPLATE = """
         
         .stat-label {
             opacity: 0.9;
+            font-size: 0.9em;
         }
         
         input[type="file"] {
@@ -240,6 +266,25 @@ HTML_TEMPLATE = """
             background: #e3f2fd;
             border-radius: 5px;
             display: none;
+            font-size: 0.9em;
+        }
+        
+        .file-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        
+        .file-status.loaded {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .file-status.missing {
+            background: #e74c3c;
+            color: white;
         }
         
         .loading-spinner {
@@ -256,35 +301,67 @@ HTML_TEMPLATE = """
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        .files-required-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏭 TIA Portal SCL Generator</h1>
-            <p>Генерация кода для SIMATIC из Excel файлов системы ввода-вывода</p>
+            <h1>🏭 TIA Portal SCL Generator v2.0</h1>
+            <p>Генерация кода для SIMATIC из ТРЕХ Excel файлов системы ввода-вывода</p>
         </div>
         
         <div class="content">
-            <div class="upload-section" id="dropZone">
-                <div class="upload-icon">📊</div>
-                <h2>Загрузите Excel файл</h2>
-                <p>Перетащите файл сюда или нажмите кнопку ниже</p>
-                <p style="color: #7f8c8d; margin-top: 10px;">
-                    Поддерживаются файлы .xlsx и .xls с листами ШС и ШСАУ
-                </p>
-                <button class="btn" onclick="document.getElementById('fileInput').click()">
-                    📁 Выбрать файл
-                </button>
-                <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(this)">
+            <div class="files-required-note">
+                <strong>⚠️ Важно:</strong> Для корректной генерации кода необходимо загрузить ВСЕ три файла.
+                Программа объединяет данные из всех источников для создания полной карты устройств.
+            </div>
+            
+            <div class="upload-grid">
+                <!-- Файл 1: Спецификация -->
+                <div class="upload-card required" id="card-spec" ondrop="handleDrop(event, 'spec')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📋</div>
+                    <h3>1. Спецификация.xlsx</h3>
+                    <p>Технологические данные (Config_Line, Config_Transport)</p>
+                    <button class="btn" onclick="document.getElementById('file-spec').click()">📁 Выбрать файл</button>
+                    <input type="file" id="file-spec" accept=".xlsx,.xls" onchange="handleFileSelect(event, 'spec')">
+                    <div class="file-info" id="info-spec"></div>
+                </div>
                 
-                <div class="file-info" id="fileInfo"></div>
+                <!-- Файл 2: Система ввода-вывода -->
+                <div class="upload-card required" id="card-io" ondrop="handleDrop(event, 'io')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">🔌</div>
+                    <h3>2. Система ввода-вывода.xlsx</h3>
+                    <p>Аппаратная привязка (листы ШС, ШСАУ)</p>
+                    <button class="btn" onclick="document.getElementById('file-io').click()">📁 Выбрать файл</button>
+                    <input type="file" id="file-io" accept=".xlsx,.xls" onchange="handleFileSelect(event, 'io')">
+                    <div class="file-info" id="info-io"></div>
+                </div>
+                
+                <!-- Файл 3: Список переменных -->
+                <div class="upload-card required" id="card-vars" ondrop="handleDrop(event, 'vars')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📝</div>
+                    <h3>3. Список переменных.xlsx</h3>
+                    <p>Имена переменных для привязки</p>
+                    <button class="btn" onclick="document.getElementById('file-vars').click()">📁 Выбрать файл</button>
+                    <input type="file" id="file-vars" accept=".xlsx,.xls" onchange="handleFileSelect(event, 'vars')">
+                    <div class="file-info" id="info-vars"></div>
+                </div>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
                 <button class="btn btn-success" id="generateBtn" onclick="generateCode()" disabled>
                     🚀 Сгенерировать код
                 </button>
+                <span id="filesStatus" style="margin-left: 15px; color: #7f8c8d;"></span>
             </div>
             
             <div class="progress-container" id="progressContainer">
@@ -311,71 +388,91 @@ HTML_TEMPLATE = """
     </div>
     
     <script>
-        let selectedFile = null;
+        let files = {
+            spec: null,
+            io: null,
+            vars: null
+        };
         let generatedFileName = null;
         
+        function updateFilesStatus() {
+            const loaded = Object.values(files).filter(f => f !== null).length;
+            const statusEl = document.getElementById('filesStatus');
+            const generateBtn = document.getElementById('generateBtn');
+            
+            if (loaded === 3) {
+                statusEl.textContent = '✅ Все файлы загружены';
+                statusEl.style.color = '#27ae60';
+                generateBtn.disabled = false;
+            } else {
+                statusEl.textContent = `⏳ Загружено файлов: ${loaded} из 3`;
+                statusEl.style.color = '#e67e22';
+                generateBtn.disabled = true;
+            }
+        }
+        
         // Drag and drop
-        const dropZone = document.getElementById('dropZone');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
+        function handleDragOver(e) {
             e.preventDefault();
-            e.stopPropagation();
+            e.currentTarget.classList.add('dragover');
         }
         
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
         
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-        
-        dropZone.addEventListener('drop', handleDrop, false);
-        
-        function handleDrop(e) {
+        function handleDrop(e, fileType) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
             const dt = e.dataTransfer;
-            const files = dt.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
+            const fileList = dt.files;
+            if (fileList.length > 0) {
+                handleFile(fileList[0], fileType);
             }
         }
         
-        function handleFileSelect(input) {
+        function handleFileSelect(event, fileType) {
+            const input = event.target;
             if (input.files.length > 0) {
-                handleFile(input.files[0]);
+                handleFile(input.files[0], fileType);
             }
         }
         
-        function handleFile(file) {
-            selectedFile = file;
-            document.getElementById('fileInfo').style.display = 'block';
-            document.getElementById('fileInfo').innerHTML = `
-                <strong>Выбран файл:</strong> ${file.name}<br>
+        function handleFile(file, fileType) {
+            files[fileType] = file;
+            const infoEl = document.getElementById('info-' + fileType);
+            const cardEl = document.getElementById('card-' + fileType);
+            
+            infoEl.style.display = 'block';
+            infoEl.innerHTML = `
+                <strong>✅ Файл загружен:</strong> ${file.name}<br>
                 <strong>Размер:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB
+                <span class="file-status loaded">Готов</span>
             `;
-            document.getElementById('generateBtn').disabled = false;
+            cardEl.classList.remove('required');
+            
+            updateFilesStatus();
         }
         
         async function generateCode() {
-            if (!selectedFile) {
-                alert('Пожалуйста, выберите файл!');
+            // Проверка наличия всех файлов
+            if (!files.spec || !files.io || !files.vars) {
+                alert('Пожалуйста, загрузите ВСЕ три файла!');
                 return;
             }
             
             const formData = new FormData();
-            formData.append('file', selectedFile);
+            formData.append('spec_file', files.spec);
+            formData.append('io_file', files.io);
+            formData.append('vars_file', files.vars);
             
             document.getElementById('progressContainer').style.display = 'block';
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('outputSection').style.display = 'none';
             
             try {
-                // Шаг 1: Загрузка файла
-                updateProgress(10, 'Загрузка файла...');
+                // Шаг 1: Загрузка файлов
+                updateProgress(10, 'Загрузка файлов...');
                 
                 const uploadResponse = await fetch('/upload', {
                     method: 'POST',
@@ -383,25 +480,26 @@ HTML_TEMPLATE = """
                 });
                 
                 if (!uploadResponse.ok) {
-                    throw new Error('Ошибка загрузки файла');
+                    throw new Error('Ошибка загрузки файлов');
                 }
                 
                 const uploadResult = await uploadResponse.json();
-                const fileId = uploadResult.file_id;
+                const sessionId = uploadResult.session_id;
                 
                 // Шаг 2: Генерация кода
-                updateProgress(30, 'Анализ структуры Excel...');
+                updateProgress(30, 'Анализ структуры Excel файлов...');
                 
                 const generateResponse = await fetch('/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ file_id: fileId })
+                    body: JSON.stringify({ session_id: sessionId })
                 });
                 
                 if (!generateResponse.ok) {
-                    throw new Error('Ошибка генерации кода');
+                    const errorData = await generateResponse.json();
+                    throw new Error(errorData.error || 'Ошибка генерации кода');
                 }
                 
                 const result = await generateResponse.json();
@@ -449,11 +547,27 @@ HTML_TEMPLATE = """
                     <div class="stat-number">${stats.module_channels}</div>
                     <div class="stat-label">Каналов модулей</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.ai_count}</div>
+                    <div class="stat-label">AI каналы</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.ao_count}</div>
+                    <div class="stat-label">AO каналы</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.di_count}</div>
+                    <div class="stat-label">DI каналы</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.do_count}</div>
+                    <div class="stat-label">DO каналы</div>
+                </div>
             `;
             
-            // Показываем предпросмотр кода (первые 2000 символов)
+            // Показываем предпросмотр кода (первые 3000 символов)
             const preview = result.code_preview.substring(0, 3000);
-            document.getElementById('codePreview').textContent = preview + (result.code_preview.length > 3000 ? '\\n\\n... (полный код в скачанном файле)' : '');
+            document.getElementById('codePreview').textContent = preview + (result.code_preview.length > 3000 ? '\n\n... (полный код в скачанном файле)' : '');
             
             setTimeout(() => {
                 document.getElementById('generateBtn').disabled = false;
@@ -477,46 +591,90 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Загрузка файла"""
-    if 'file' not in request.files:
-        return jsonify({'error': 'Файл не найден'}), 400
+    """Загрузка ТРЕХ файлов"""
+    required_files = ['spec_file', 'io_file', 'vars_file']
+    file_names = {
+        'spec_file': 'Спецификация',
+        'io_file': 'Система ввода-вывода',
+        'vars_file': 'Список переменных'
+    }
     
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'Файл не выбран'}), 400
+    uploaded_files = {}
     
-    if not file.filename.endswith(('.xlsx', '.xls')):
-        return jsonify({'error': 'Поддерживаются только Excel файлы (.xlsx, .xls)'}), 400
+    for field_name in required_files:
+        if field_name not in request.files:
+            return jsonify({'error': f'Файл не найден: {file_names[field_name]}'}), 400
+        
+        file = request.files[field_name]
+        if file.filename == '':
+            return jsonify({'error': f'Файл не выбран: {file_names[field_name]}'}), 400
+        
+        if not file.filename.endswith(('.xlsx', '.xls')):
+            return jsonify({'error': f'Поддерживаются только Excel файлы: {file_names[field_name]}'}), 400
+        
+        # Сохраняем файл с уникальным именем
+        filename = secure_filename(file.filename)
+        file_id = f"{os.getpid()}_{field_name}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_id)
+        file.save(filepath)
+        uploaded_files[field_name] = filepath
     
-    # Сохраняем файл
-    filename = secure_filename(file.filename)
-    file_id = f"{os.getpid()}_{filename}"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_id)
-    file.save(filepath)
+    # Создаем session_id из комбинации всех file_id
+    session_id = f"{os.getpid()}_{uploaded_files['spec_file']}_{uploaded_files['io_file']}_{uploaded_files['vars_file']}"
+    
+    # Сохраняем информацию о сессии
+    session_data = {
+        'spec_file': uploaded_files['spec_file'],
+        'io_file': uploaded_files['io_file'],
+        'vars_file': uploaded_files['vars_file']
+    }
+    session_path = os.path.join(app.config['UPLOAD_FOLDER'], f"session_{session_id}.json")
+    
+    import json
+    with open(session_path, 'w', encoding='utf-8') as f:
+        json.dump(session_data, f, ensure_ascii=False)
     
     return jsonify({
         'success': True,
-        'file_id': file_id,
-        'filename': filename
+        'session_id': session_id,
+        'files': {k: os.path.basename(v) for k, v in uploaded_files.items()}
     })
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    """Генерация кода"""
+    """Генерация кода из ТРЕХ файлов"""
     data = request.json
-    file_id = data.get('file_id')
+    session_id = data.get('session_id')
     
-    if not file_id:
-        return jsonify({'error': 'ID файла не указан'}), 400
+    if not session_id:
+        return jsonify({'error': 'ID сессии не указан'}), 400
     
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_id)
+    # Загружаем информацию о сессии
+    session_path = os.path.join(app.config['UPLOAD_FOLDER'], f"session_{session_id}.json")
     
-    if not os.path.exists(filepath):
-        return jsonify({'error': 'Файл не найден'}), 404
+    if not os.path.exists(session_path):
+        return jsonify({'error': 'Сессия не найдена. Загрузите файлы заново.'}), 404
+    
+    import json
+    with open(session_path, 'r', encoding='utf-8') as f:
+        session_data = json.load(f)
+    
+    spec_file = session_data.get('spec_file')
+    io_file = session_data.get('io_file')
+    vars_file = session_data.get('vars_file')
+    
+    # Проверяем наличие всех файлов
+    for fpath, fname in [(spec_file, 'Спецификация'), (io_file, 'Система ввода-вывода'), (vars_file, 'Список переменных')]:
+        if not os.path.exists(fpath):
+            return jsonify({'error': f'Файл не найден: {fname}'}), 404
     
     try:
-        # Создаем генератор
-        generator = ExcelToSCLConverter(filepath)
+        # Создаем генератор с тремя файлами
+        generator = ExcelToSCLConverter(
+            spec_file=spec_file,
+            io_file=io_file,
+            vars_file=vars_file
+        )
         
         # Анализируем workbook
         workbook_info = generator.analyze_workbook()
@@ -528,7 +686,7 @@ def generate():
         stats = generator.get_statistics()
         
         # Сохраняем результат
-        output_filename = f"{os.path.splitext(os.path.basename(filepath))[0]}_SCL.txt"
+        output_filename = f"SCL_Generated_{session_id[:8]}.txt"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
         
         with open(output_path, 'w', encoding='utf-8') as f:
