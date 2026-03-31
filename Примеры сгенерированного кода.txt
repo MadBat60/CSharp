@@ -1,0 +1,727 @@
+// Установленное количество устройств
+    "Options".Count.MaxOP := 2;
+    "Options".Count.MaxRow := 3;
+    "Options".Count.MaxAO := 3;
+    "Options".Count.MaxCart := 2;
+    "Options".Count.MaxVann := 39;
+    "Options".Count.MaxDoliv := 12;
+    "Options".Count.MaxTemperature := 11;
+    "Options".Count.MaxCover := 17;
+    "Options".Count.MaxJr := 1;
+    "Options".Count.MaxMixer := 29;
+    "Options".Count.MaxVip := 4;
+    "Options".Count.MaxFiltr := 3;
+    "Options".Count.MaxDoser := 0;
+    "Options".Count.MaxShower := 0;
+    "Options".Count.MaxPok := 0;
+    "Options".Count.MaxDry := 0;
+    "Options".Count.MaxSink := 0;
+    "Options".Count.MaxPID := 0;
+    "Options".Count.MaxBlower := 0;
+    "Options".Count.MaxChiller := 0;
+    "Options".Count.MaxSafetyBar := 0;
+    "Options".Count.MaxLifter := 3;
+	
+	REGION Doliv 
+(* Доливы
+CfgPlace        номер ванны
+CfgType         тип
+CfgCascadeVann  для каскадных доливов указываем номер второй ванны каскада
+CfgAutoLevel    автоматическое получение уровня из ванны по Place
+CfgIgnoreSewer  не учитываем сигнал о заполнении очистных, например, процессная ванна без трубы слива
+при необходимости снимаем флаг CfgAutoLevel для ванн, уровень которых указывается в IO и берется отдёльно
+*)
+    
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxDoliv DO
+        "Doliv".Dev[#iCnt].CfgAutoLevel := TRUE;    // по умолчанию уровни берём из ванны по place
+        
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+    
+    "Doliv".Dev[1].CfgPlace := 2;
+    "Doliv".Dev[1].CfgType := 23;
+    
+    "Doliv".Dev[2].CfgPlace := 4;
+    "Doliv".Dev[2].CfgType := 15;
+    "Doliv".Dev[2].CfgCascadeVann := 3;
+    
+    "Doliv".Dev[3].CfgPlace := 7;
+    "Doliv".Dev[3].CfgType := 1;
+    "Doliv".Dev[3].CfgCascadeVann := 6;
+    
+    "Doliv".Dev[4].CfgPlace := 10;
+    "Doliv".Dev[4].CfgType := 1;
+    
+    "Doliv".Dev[5].CfgPlace := 11;
+    "Doliv".Dev[5].CfgType := 1;
+    
+    "Doliv".Dev[6].CfgPlace := 12;
+    "Doliv".Dev[6].CfgType := 1;
+    
+    "Doliv".Dev[7].CfgPlace := 19;
+    "Doliv".Dev[7].CfgType := 1;
+    
+    "Doliv".Dev[8].CfgPlace := 24;
+    "Doliv".Dev[8].CfgType := 18;
+    
+    "Doliv".Dev[9].CfgPlace := 29;
+    "Doliv".Dev[9].CfgType := 1;
+    
+    "Doliv".Dev[10].CfgPlace := 30;
+    "Doliv".Dev[10].CfgType := 3;
+    
+    "Doliv".Dev[11].CfgPlace := 32;
+    "Doliv".Dev[11].CfgType := 1;
+    
+    "Doliv".Dev[12].CfgPlace := 37;
+    "Doliv".Dev[12].CfgType := 18;
+
+END_REGION
+
+
+REGION Temperature
+(* Нагревы и охлаждении
+TmprPrm.ModbusAddr  - адрес внешнего модуля управления, например ПИД ТРМ10
+CfgPlace
+CfgType
+CfgPIDnum       номер программного ПИД-регулятора, для типов ПИД-нагревов
+CfgStages       количество ступеней нагрева, по количеству выходов на контаторы ТЭНов
+CfgAutoLevel    автоматическое получение уровня из ванны по Place
+при необходимости снимаем флаг CfgAutoLevel для ванн, уровень которых указывается в IO и берется отдёльно
+*)
+    
+    "Options".Tmpr.ActiveAutoTunePID := 0;   // отключаем автотюн пид-регуляторов
+    
+    "Tmpr".Dev[1].CfgPlace := 2;
+    "Tmpr".Dev[1].CfgType := 1;
+    
+    "Tmpr".Dev[2].CfgPlace := 3;
+    "Tmpr".Dev[2].CfgType := 1;
+    
+    "Tmpr".Dev[3].CfgPlace := 8;
+    "Tmpr".Dev[3].CfgType := 6;
+    
+    "Tmpr".Dev[4].CfgPlace := 9;
+    "Tmpr".Dev[4].CfgType := 6;
+    
+    "Tmpr".Dev[5].CfgPlace := 23;
+    "Tmpr".Dev[5].CfgType := 1;
+    
+    "Tmpr".Dev[6].CfgPlace := 24;
+    "Tmpr".Dev[6].CfgType := 1;
+    
+    "Tmpr".Dev[7].CfgPlace := 30;
+    "Tmpr".Dev[7].CfgType := 1;
+    
+    "Tmpr".Dev[8].CfgPlace := 34;
+    "Tmpr".Dev[8].CfgType := 1;
+    
+    "Tmpr".Dev[9].CfgPlace := 36;
+    "Tmpr".Dev[9].CfgType := 1;
+    
+    "Tmpr".Dev[10].CfgPlace := 37;
+    "Tmpr".Dev[10].CfgType := 1;
+    
+    "Tmpr".Dev[11].CfgPlace := 39;
+    "Tmpr".Dev[11].CfgType := 11;
+    
+END_REGION
+
+
+REGION Cover
+(* Крышки ванн
+CfgPlace
+CfgType
+CfgPultType             тип местного пульта управления, смотри в PultCover()
+CfgPnevmo               крышки работают на пневматике или нет
+CfgDatRExist            установлен отдельный датчик на вторую крышку
+CfgDatCloseNotExist     отсутствует датчик на закрытие крышки, есть только на открытие, используется таймер для генерации сигнала close
+при необходимости снимаем флаг CfgPnevmo для электрических крышек или вроде того
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxCover DO
+        "Cover".Dev[#iCnt].CfgPnevmo := TRUE;
+
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+    
+    "Cover".Dev[1].CfgPlace := 2;
+    "Cover".Dev[1].CfgType := 2;
+    
+    "Cover".Dev[2].CfgPlace := 3;
+    "Cover".Dev[2].CfgType := 2;
+    
+    "Cover".Dev[3].CfgPlace := 5;
+    "Cover".Dev[3].CfgType := 2;
+    
+    "Cover".Dev[4].CfgPlace := 8;
+    "Cover".Dev[4].CfgType := 2;
+    
+    "Cover".Dev[5].CfgPlace := 9;
+    "Cover".Dev[5].CfgType := 2;
+    
+    "Cover".Dev[6].CfgPlace := 16;
+    "Cover".Dev[6].CfgType := 2;
+    
+    "Cover".Dev[7].CfgPlace := 20;
+    "Cover".Dev[7].CfgType := 2;
+    
+    "Cover".Dev[8].CfgPlace := 21;
+    "Cover".Dev[8].CfgType := 2;
+    
+    "Cover".Dev[9].CfgPlace := 22;
+    "Cover".Dev[9].CfgType := 2;
+    
+    "Cover".Dev[10].CfgPlace := 23;
+    "Cover".Dev[10].CfgType := 2;
+    
+    "Cover".Dev[11].CfgPlace := 24;
+    "Cover".Dev[11].CfgType := 2;
+    
+    "Cover".Dev[12].CfgPlace := 28;
+    "Cover".Dev[12].CfgType := 2;
+    
+    "Cover".Dev[13].CfgPlace := 30;
+    "Cover".Dev[13].CfgType := 2;
+    
+    "Cover".Dev[14].CfgPlace := 34;
+    "Cover".Dev[14].CfgType := 2;
+    
+    "Cover".Dev[15].CfgPlace := 35;
+    "Cover".Dev[15].CfgType := 2;
+    
+    "Cover".Dev[16].CfgPlace := 36;
+    "Cover".Dev[16].CfgType := 2;
+    
+    "Cover".Dev[17].CfgPlace := 37;
+    "Cover".Dev[17].CfgType := 2;
+    
+END_REGION
+
+
+REGION Jr
+(* Жироуловители
+CfgPlace
+CfgType
+CfgAutoLevel    автоматическое получение уровня из ванны по Place
+при необходимости снимаем флаг CfgAutoLevel для ванн, уровень которых указывается в IO и берется отдёльно
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxJr DO
+        "Jr".Dev[#iCnt].CfgAutoLevel := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+    
+    "Jr".Dev[1].CfgPlace := 1;
+    "Jr".Dev[1].CfgType := 2;
+    
+END_REGION
+
+
+REGION Mixer
+(* Мешалки, барботажи
+CfgPlace
+CfgType
+CfgPnevmo       по умолчанию перемешивание воздухом, барботаж. сжатый или воздуходувка
+при необходимости снимаем флаг CfgPnevmo для перемешиваний типа насосом или вроде того
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxMixer DO
+        "Mixer".Dev[#iCnt].CfgPnevmo := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+    
+    "Mixer".Dev[1].CfgPlace := 2;
+    "Mixer".Dev[1].CfgType := 1;
+    
+    "Mixer".Dev[2].CfgPlace := 3;
+    "Mixer".Dev[2].CfgType := 1;
+    
+    "Mixer".Dev[3].CfgPlace := 4;
+    "Mixer".Dev[3].CfgType := 1;
+    
+    "Mixer".Dev[4].CfgPlace := 5;
+    "Mixer".Dev[4].CfgType := 1;
+    
+    "Mixer".Dev[5].CfgPlace := 6;
+    "Mixer".Dev[5].CfgType := 1;
+    
+    "Mixer".Dev[6].CfgPlace := 7;
+    "Mixer".Dev[6].CfgType := 1;
+    
+    "Mixer".Dev[7].CfgPlace := 8;
+    "Mixer".Dev[7].CfgType := 1;
+    
+    "Mixer".Dev[8].CfgPlace := 9;
+    "Mixer".Dev[8].CfgType := 1;
+    
+    "Mixer".Dev[9].CfgPlace := 10;
+    "Mixer".Dev[9].CfgType := 1;
+    
+    "Mixer".Dev[10].CfgPlace := 11;
+    "Mixer".Dev[10].CfgType := 1;
+    
+    "Mixer".Dev[11].CfgPlace := 12;
+    "Mixer".Dev[11].CfgType := 1;
+    
+    "Mixer".Dev[12].CfgPlace := 16;
+    "Mixer".Dev[12].CfgType := 1;
+    
+    "Mixer".Dev[13].CfgPlace := 17;
+    "Mixer".Dev[13].CfgType := 1;
+    
+    "Mixer".Dev[14].CfgPlace := 18;
+    "Mixer".Dev[14].CfgType := 1;
+    
+    "Mixer".Dev[15].CfgPlace := 19;
+    "Mixer".Dev[15].CfgType := 1;
+    
+    "Mixer".Dev[16].CfgPlace := 20;
+    "Mixer".Dev[16].CfgType := 1;
+    
+    "Mixer".Dev[17].CfgPlace := 21;
+    "Mixer".Dev[17].CfgType := 1;
+    
+    "Mixer".Dev[18].CfgPlace := 22;
+    "Mixer".Dev[18].CfgType := 1;
+    
+    "Mixer".Dev[19].CfgPlace := 23;
+    "Mixer".Dev[19].CfgType := 1;
+    
+    "Mixer".Dev[20].CfgPlace := 24;
+    "Mixer".Dev[20].CfgType := 1;
+    
+    "Mixer".Dev[21].CfgPlace := 28;
+    "Mixer".Dev[21].CfgType := 1;
+    
+    "Mixer".Dev[22].CfgPlace := 29;
+    "Mixer".Dev[22].CfgType := 1;
+    
+    "Mixer".Dev[23].CfgPlace := 31;
+    "Mixer".Dev[23].CfgType := 1;
+    
+    "Mixer".Dev[24].CfgPlace := 32;
+    "Mixer".Dev[24].CfgType := 1;
+    
+    "Mixer".Dev[25].CfgPlace := 33;
+    "Mixer".Dev[25].CfgType := 1;
+    
+    "Mixer".Dev[26].CfgPlace := 34;
+    "Mixer".Dev[26].CfgType := 1;
+    
+    "Mixer".Dev[27].CfgPlace := 35;
+    "Mixer".Dev[27].CfgType := 1;
+    
+    "Mixer".Dev[28].CfgPlace := 36;
+    "Mixer".Dev[28].CfgType := 1;
+    
+    "Mixer".Dev[29].CfgPlace := 37;
+    "Mixer".Dev[29].CfgType := 1;
+    
+END_REGION
+
+
+REGION Vip
+(* Выпрямители
+VipPrm.ModbusAddr - адрес
+CfgPlace
+CfgType
+CfgReferTo              ссылка на ведущий выпрямитель
+CfgReferFrom            ссылка на ведомый выпрямитель
+CfgMinU                 минимальное напряжение выпрямителя
+CfgMaxU                 максимальное
+CfgMinI                 ток
+CfgMaxI
+CfgHotChangeAllowed     можно менять ток/напряжение на лету, без остановки випа
+CfgReversAllowed        можно переключать реверс на лету, без остановки випа
+
+Cfg параметров по току/напряжению могут быть запрошены из самого выпрямителя
+Refer - это для линкованных выпрямителей, когда один вип работает на две ванны и управляется из двух мест (ванн) со своими параметрами
+ReferTo@ReferFrom должны ссылаться друг на друга
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxVip DO
+        "VipPrm".Dev[#iCnt].ModbusAddr := "eLine_Comm_NoModbusAddr";    // сбрасываем адрес для предотвращения всякого
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+    
+    "VipPrm".Dev[1].ModbusAddr := 1;
+    "Vip".Dev[1].CfgPlace := 2;
+    "Vip".Dev[1].CfgType := 2;
+    "Vip".Dev[1].CfgMaxU := 12;
+    "Vip".Dev[1].CfgMinU := 0;
+    "Vip".Dev[1].CfgMaxI := 500;
+    "Vip".Dev[1].CfgMinI := 0;
+    "Vip".Dev[1].CfgHotChangeAllowed := TRUE;
+    //"Vip".Dev[1].ReferFrom := 2;    // на этот выпрямитель ссылаются с выпрямителя № 2
+    
+    "VipPrm".Dev[2].ModbusAddr := 2;
+    "Vip".Dev[2].CfgPlace := 8;
+    "Vip".Dev[2].CfgType := 2;
+    "Vip".Dev[2].CfgMaxU := 12;
+    "Vip".Dev[2].CfgMinU := 0;
+    "Vip".Dev[2].CfgMaxI := 500;
+    "Vip".Dev[2].CfgMinI := 0;
+    "Vip".Dev[2].CfgHotChangeAllowed := TRUE;
+    //"Vip".Dev[2].ReferTo := 1;      // ссылка на выпрямитель № 1
+    
+    "VipPrm".Dev[3].ModbusAddr := 3;
+    "Vip".Dev[3].CfgPlace := 9;
+    "Vip".Dev[3].CfgType := 2;
+    "Vip".Dev[3].CfgMaxU := 12;
+    "Vip".Dev[3].CfgMinU := 0;
+    "Vip".Dev[3].CfgMaxI := 500;
+    "Vip".Dev[3].CfgMinI := 0;
+    "Vip".Dev[3].CfgHotChangeAllowed := TRUE;
+    
+    "VipPrm".Dev[4].ModbusAddr := 4;
+    "Vip".Dev[4].CfgPlace := 16;
+    "Vip".Dev[4].CfgType := 2;
+    "Vip".Dev[4].CfgMaxU := 12;
+    "Vip".Dev[4].CfgMinU := 0;
+    "Vip".Dev[4].CfgMaxI := 1000;
+    "Vip".Dev[4].CfgMinI := 0;
+    "Vip".Dev[4].CfgReversAllowed := TRUE;
+    "Vip".Dev[4].CfgHotChangeAllowed := TRUE;
+    
+END_REGION
+
+
+REGION Filtr
+(* Фильтровалки
+CfgPlace
+CfgType
+*)
+    "Filtr".Dev[1].CfgPlace := 8;
+    "Filtr".Dev[1].CfgType := 1;
+    
+    "Filtr".Dev[2].CfgPlace := 9;
+    "Filtr".Dev[2].CfgType := 1;
+    
+    "Filtr".Dev[3].CfgPlace := 16;
+    "Filtr".Dev[3].CfgType := 1;
+    
+END_REGION
+
+
+REGION Doser
+(* Дозаторы
+CfgPlace
+CfgType
+CfgVipNum   с выпрямителя под этим номером дозатор берёт значения для работы
+*)
+    "Doser".Dev[1].CfgPlace := 23;
+    "Doser".Dev[1].CfgType := 1;
+    "Doser".Dev[1].CfgVipNum := 3;
+    
+    "Doser".Dev[2].CfgPlace := 24;
+    "Doser".Dev[2].CfgType := 1;
+    "Doser".Dev[1].CfgVipNum := 4;
+    
+END_REGION
+
+
+REGION Shower
+(* Душирование
+CfgPlace
+CfgType
+*)
+    "Shower".Dev[1].CfgPlace := 0;
+    "Shower".Dev[1].CfgType := 0;
+
+END_REGION
+
+
+REGION Pok
+(* Качалки
+CfgPlace
+CfgType
+CfgRearDriveExist   наличие второго привода качания
+*)
+    "Pok".Dev[1].CfgPlace := 13;
+    "Pok".Dev[1].CfgType := 2;
+    
+    "Pok".Dev[2].CfgPlace := 14;
+    "Pok".Dev[2].CfgType := 2;
+    
+    "Pok".Dev[3].CfgPlace := 15;
+    "Pok".Dev[3].CfgType := 2;
+    
+END_REGION
+
+
+REGION Dry
+(* Сушилки
+CfgPlace
+CfgType
+CfgSections         количество секций в сушке
+CfgStageLowPower    номера ступеней (выходов) включаемых для работы на малой мощности
+*)
+    
+    "Dry".Dev[1].Data.CfgPlace := 3;
+    "Dry".Dev[1].Data.CfgType := 5;
+    "Dry".Dev[1].Data.CfgSections := 1;
+    // Выставляем только нужные биты, которые отвечают за работу на малой мощности
+    "Dry".Dev[1].Data.CfgStageLowPower[1] := TRUE;
+    
+END_REGION
+
+
+REGION Sink
+(* Сливы с ванн
+CfgPlace
+CfgType
+CfgIgnoreSewer
+*)
+    "Sink".Dev[1].CfgPlace := 19;
+    "Sink".Dev[1].CfgType := 3;
+    
+    "Sink".Dev[2].CfgPlace := 20;
+    "Sink".Dev[2].CfgType := 3;
+
+END_REGION
+
+
+REGION PID
+// Программные ПИД-регуляторы Siemens
+
+    // Выключение ПИД-регуляторов и обнуление их выходов. Т.к. PID сименса в retain то приходится обнулять
+    FOR #iCnt := 0 TO 7 DO
+        "PID".DevActive[#iCnt]      := FALSE;   // ПИД не активен по входу EN
+        "PID".DevData[#iCnt].lmn    := 0.0;     // Выход для регулятора
+        "PID".DevData[#iCnt].lmn_per := 0;      // Выход для периферийного устройства
+        "PID".DevData[#iCnt].qpulse := FALSE;   // Для испульсного выхода
+    END_FOR;
+    
+    // отсутствуют в заказе
+    "PID".DevActive[0] := FALSE;
+    "PID".DevActive[1] := FALSE;
+    "PID".DevActive[2] := FALSE;
+    "PID".DevActive[3] := FALSE;
+    "PID".DevActive[4] := FALSE;
+    "PID".DevActive[5] := FALSE;
+    "PID".DevActive[6] := FALSE;
+    "PID".DevActive[7] := FALSE;
+    
+    "PID"(resetPID := TRUE);    // Сброс управления ПИД регуляторов
+    
+    // *** Конфигурация ПИД ***
+    // Пока нельзя задать разную конфигурацию для разных ПИД, только идентичную для всех, т.к. привязано к прерыванию, в котором выполняется блок
+    //PIDdata.DevData[0].cycle    := 20.0;    // Период вызова расчётного блока ПИД, равен периоду вызова
+    //PIDdata.DevData[0].cycle_p  := 0.2;     // Период импульсов ШИМ на выходе ПИД, равен периоду вызова в OB прерывания для импульсного выхода
+    //PIDdata.DevData[0].select   := 0;       // Режим работы (0..4), непрерывный регулятор или шим, задаётся либо здесь либо в прерывании при вызове
+    
+    //PIDdata.DevData[1].cycle    := 20.0;
+    //PIDdata.DevData[1].cycle_p  := 0.2;
+    //PIDdata.DevData[1].select   := 0;
+END_REGION
+
+
+REGION Blower
+(* Воздуходувки
+BlowerPrm.MinPressure
+BlowerPrm.MaxPressure
+BlowerPrm.MaxAvarPressure
+BlowerPrm.MaxAvarTmpr
+BlowerPrm.ControlTime
+CfgPlace
+CfgType
+тут много параметров под будущие настройки с Гальваники
+*)
+    
+    "BlowerPrm".Dev[1].MinPressure := 0;
+    "BlowerPrm".Dev[1].MaxPressure := 200;
+    "BlowerPrm".Dev[1].MaxAvarPressure := 240;
+    "BlowerPrm".Dev[1].ControlTime := 5;
+    "Blower".Dev[1].CfgPlace := #cDiffVann;
+    "Blower".Dev[1].CfgType := 1;
+    
+END_REGION
+
+
+REGION Chiller
+(* Чиллеры 
+ChillerPrm.ModbusAddr  - адрес
+CfgPlace
+CfgType
+CfgCoolingTmpr          биты номеров обслуживаемых нагревов
+CfgNoBypassControl      отключение управления байпасом
+*)
+    
+    "ChillerPrm".Dev[1].ModbusAddr := 10;
+    "Chiller".Dev[1].CfgPlace := #cDiffVann;
+    "Chiller".Dev[1].CfgType := 2;  // внешний чиллер Thermex
+    "Chiller".Dev[1].CfgNoBypassControl := FALSE;
+    "Chiller".Dev[1].CfgCoolingTmpr[2] := TRUE;
+    "Chiller".Dev[1].CfgCoolingTmpr[3] := TRUE;
+    "Chiller".Dev[1].CfgCoolingTmpr[4] := TRUE;
+    
+END_REGION
+
+
+REGION SafetyBar
+// Барьеры безопасности
+    "SafetyBar".Dev[1].CfgPlace := 2;
+    "SafetyBar".Dev[1].CfgInRow := 0;
+    "SafetyBar".Dev[1].CfgNoErrorMessage := FALSE;
+    
+END_REGION
+
+
+REGION VentAbsorb
+// Вентиляция и абсорберы
+    #iCnt := 1;
+    FOR #iCnt := 1 TO "eMaxVent" DO      // Массив в DB Vent
+        "Vent".Dev[#iCnt].DevID := "eCatVent" * 100 + #iCnt;
+    END_FOR;
+    
+    "Vent".Dev[1].CfgPlace := 101;     // Номера 101-106 зарезервированы за вентиляцией и абсорберами
+    "Vent".Dev[1].CfgType := 1;
+END_REGION
+
+
+
+
+//Пример для AI
+REGION Module1
+    // А24. Адрес 141
+    "Vann".Dev[2].Temperature :=  "MapAin".Module[1].Channel[1];
+    "Vann".Dev[3].Temperature := "MapAin".Module[1].Channel[2];
+    "Vann".Dev[8].Temperature := "MapAin".Module[1].Channel[3];
+    "Vann".Dev[9].Temperature := "MapAin".Module[1].Channel[4];
+    "Vann".Dev[23].Temperature := "MapAin".Module[1].Channel[5];
+    "Vann".Dev[24].Temperature := "MapAin".Module[1].Channel[6];
+    "Vann".Dev[30].Temperature := "MapAin".Module[1].Channel[7];
+    "Vann".Dev[34].Temperature := "MapAin".Module[1].Channel[8];  
+END_REGION 
+
+
+//Пример для DO
+REGION Module1
+    // А17. Адрес 181
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+    
+    #xBit.b1 := "Tmpr".Dev[1].qStage[1];
+    #xBit.b2 := "Tmpr".Dev[2].qStage[1];
+    #xBit.b3 := "Tmpr".Dev[5].qStage[1];
+    #xBit.b4 := "Tmpr".Dev[6].qStage[1];
+    #xBit.b5 := "Tmpr".Dev[7].qStage[1];
+    #xBit.b6 := "Tmpr".Dev[8].qStage[1];
+    #xBit.b7 := "Tmpr".Dev[9].qStage[1];
+    #xBit.b8 := "Tmpr".Dev[10].qStage[1];
+    
+    #xBit.b9 := "Cart".Dev[1].dAvarStopBack OR "Cart".Dev[1].dAvarStopFwd;
+    #xBit.b10 := "Cart".Dev[2].dAvarStopBack OR "Cart".Dev[2].dAvarStopFwd;
+    #xBit.b11 := FALSE;
+    #xBit.b12 := "Filtr".Dev[1].qFiltr;
+    #xBit.b13 := "Filtr".Dev[2].qFiltr;
+    
+    #xBit.b14 := "Filtr".Dev[3].qFiltr;
+    #xBit.b15 := "LineDev".BarRot.Section[1].qRotate;
+    #xBit.b16 := "LineDev".BarRot.Section[2].qRotate;
+    
+    #xBit.b17 := "LineDev".BarRot.Section[3].qRotate;
+    #xBit.b18 := "Cart".Dev[1].qFwd;
+    #xBit.b19 := "Cart".Dev[2].qBack;
+    #xBit.b20 := "Cart".Dev[1].qHighSpeed;
+    #xBit.b21 := "Cart".Dev[2].qFwd;
+    #xBit.b22 := "Cart".Dev[2].qBack;
+    #xBit.b23 := "Cart".Dev[2].qHighSpeed;
+    #xBit.b24 := "Doliv".Dev[1].qDoliv;
+    
+    #xBit.b25 := "Doliv".Dev[2].qDoliv;
+    #xBit.b26 := "Doliv".Dev[3].qDoliv;
+    #xBit.b27 := "Doliv".Dev[4].qDoliv;
+    #xBit.b28 := "Doliv".Dev[5].qDoliv;
+    #xBit.b29 := "Doliv".Dev[7].qDoliv;
+    #xBit.b30 := "Doliv".Dev[8].qDoliv;
+    #xBit.b31 := "Doliv".Dev[6].qDoliv;
+    #xBit.b32 := "Doliv".Dev[9].qDoliv;
+    
+    "MapDout".Module[1].BitMask := #dwModuleBitMask;
+    
+END_REGION
+
+
+REGION Module2
+    // А18. Адрес 182
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+    
+    #xBit.b1 := "Doliv".Dev[10].qDoliv;
+    #xBit.b2 := "Doliv".Dev[11].qDoliv;
+    #xBit.b3 := #xReserv;
+    #xBit.b4 := "Doliv".Dev[12].qDoliv;
+    #xBit.b5 := "Tmpr".Dev[3].qOxl;
+    #xBit.b6 := "Tmpr".Dev[4].qOxl;
+    #xBit.b7 := #xReserv;
+    #xBit.b8 := "Mixer".Dev[1].qBarb;
+    
+    #xBit.b9 := "Mixer".Dev[2].qBarb;
+    #xBit.b10 := "Mixer".Dev[3].qBarb;
+    #xBit.b11 := "Mixer".Dev[4].qBarb;
+    #xBit.b12 := "Mixer".Dev[5].qBarb;
+    #xBit.b13 := "Mixer".Dev[6].qBarb;
+    #xBit.b14 := "Mixer".Dev[7].qBarb;
+    #xBit.b15 := "Mixer".Dev[8].qBarb;
+    #xBit.b16 := "Mixer".Dev[9].qBarb;
+    
+    #xBit.b17 := "Mixer".Dev[10].qBarb;
+    #xBit.b18 := "Mixer".Dev[12].qBarb;
+    #xBit.b19 := "Mixer".Dev[13].qBarb;
+    #xBit.b20 := "Mixer".Dev[14].qBarb;
+    #xBit.b21 := "Mixer".Dev[15].qBarb;
+    #xBit.b22 := "Mixer".Dev[16].qBarb;
+    #xBit.b23 := "Mixer".Dev[17].qBarb;
+    #xBit.b24 := "Mixer".Dev[18].qBarb;
+    
+    #xBit.b25 := "Mixer".Dev[19].qBarb;
+    #xBit.b26 := "Mixer".Dev[20].qBarb;
+    #xBit.b27 := "Mixer".Dev[11].qBarb;
+    #xBit.b28 := "Mixer".Dev[21].qBarb;
+    #xBit.b29 := "Mixer".Dev[22].qBarb;
+    #xBit.b30 := "Mixer".Dev[23].qBarb;
+    #xBit.b31 := "Mixer".Dev[24].qBarb;
+    #xBit.b32 := "Mixer".Dev[25].qBarb;
+    
+    "MapDout".Module[2].BitMask := #dwModuleBitMask;
+END_REGION
+
+//Пример для DI
+REGION Module1
+	#dwModuleBitMask := MapDin.Module[1].BitMask;
+
+    // А20. Адрес 161
+    "Cover".Common.NoAir := #xBit.b1;   
+    "BinAvarDB".Common.EKmanComprAir := #xBit.b2;    
+    "BinAvarDB".Common.EKmanTechWater := #xBit.b3;   
+    "BinAvarDB".Common.RKNpower := #xBit.b4;         
+	"Jr".Dev[1].dAvar := #xBit.b5;
+    "Filtr".Dev[1].dAvar := #xBit.b6;
+	"Filtr".Dev[2].dAvar := #xBit.b7;
+	"Filtr".Dev[3].dAvar := #xBit.b8;
+    "Cart".Dev[1].InStopForward := #xBit.b9;
+	"Cart".Dev[1].InStopBackward := #xBit.b10;
+	"Cart".Dev[2].InStopBackward := #xBit.b11;
+	"Cart".Dev[2].InStopForward := #xBit.b12;
+	"Cart".Dev[1].InAvarStopForward := #xBit.b13;
+	"Cart".Dev[1].InAvarStopBackward := #xBit.b14;
+	"Cart".Dev[2].InAvarStopBackward := #xBit.b15;
+	"Cart".Dev[2].InAvarStopForward := #xBit.b16;
+	"Vann".Dev[2].dLevelAvarMin := #xBit.b17;
+	"Vann".Dev[2].dLevelMin := #xBit.b18;
+	"Vann".Dev[2].dLevelAvarMax := #xBit.b19;
+	"Vann".Dev[2].dPLevelAvarMin := #xBit.b20;
+	"Vann".Dev[2].dPLevelMin := #xBit.b21;
+	"Vann".Dev[2].dPLevelAvarMax := #xBit.b22;
+	"Vann".Dev[3].dLevelAvarMin := #xBit.b23;
+	"Vann".Dev[3].dLevelMin := #xBit.b24;
+	"Vann".Dev[3].dLevelAvarMax := #xBit.b25;
+	"Vann".Dev[8].dLevelAvarMin := #xBit.b26;
+	"Vann".Dev[8].dLevelMin := #xBit.b27;
+	"Vann".Dev[8].dLevelAvarMax := #xBit.b28;
+	"Vann".Dev[9].dLevelAvarMin := #xBit.b29;
+	"Vann".Dev[9].dLevelMin := #xBit.b30;
+	"Vann".Dev[9].dLevelAvarMax := #xBit.b31;
+	xReserv := #xBit.b32;
+END_REGION

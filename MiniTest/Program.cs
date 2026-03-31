@@ -24,63 +24,26 @@ namespace MiniTest
 
     public partial class MainForm : Form
     {
-        // Глобальные переменные для путей к файлам
+        // Пути к файлам
         private string ioSystemPath = "";
         private string specPath = "";
         private string variablesPath = "";
 
-        // Маппинг русских названий устройств на английские (для генерации кода)
-        private readonly Dictionary<string, string> deviceNames = new Dictionary<string, string>
-        {
-            { "Панель оператора", "OP" },
-            { "Ряд ванн", "Row" },
-            { "Автооператор", "AO" },
-            { "Тележка", "Cart" },
-            { "Ванна", "Vann" },
-            { "Долив", "Doliv" },
-            { "Температура", "Tmpr" },
-            { "Крышки", "Cover" },
-            { "Жироуловитель", "Jr" },
-            { "Перемешивание", "Mixer" },
-            { "Выпрямитель", "Vip" },
-            { "Фильтрование", "Filtr" },
-            { "Дозатор", "Doser" },
-            { "Душирование", "Shower" },
-            { "Качалка", "Pok" },
-            { "Сушилка", "Dry" },
-            { "Слив", "Sink" },
-            { "ПИД-регуляция", "PID" },
-            { "Воздуходувка", "Blower" },
-            { "Чиллер", "Chiller" },
-            { "Барьер безопасности", "SafetyBar" },
-            { "Подъемник", "Lifter" }
-        };
-
-        // Список устройств для конфигуратора (только те, что указаны в задании)
-        private readonly string[] deviceTypes = new string[] 
-        { 
-            "Панель оператора", "Ряд ванн", "Автооператор", "Тележка", "Ванна",
-            "Долив", "Температура", "Крышки", "Жироуловитель", "Перемешивание", 
-            "Выпрямитель", "Фильтрование", "Дозатор", "Душирование", "Качалка", 
-            "Сушилка", "Слив", "ПИД-регуляция", "Воздуходувка", "Чиллер", 
-            "Барьер безопасности", "Подъемник"
-        };
-
-        // Структуры для вкладки Ввод-Вывод
+        // Структуры для Ввод-Вывод
         public struct IoSignalInfo
         {
-            public int SignalNumber; 
-            public string DeviceRu; 
-            public string SignalNameRu; 
-            public int TechPos;     
-            public string VarNameEn; 
-            public int DevIndex;    
+            public int SignalNumber;
+            public string DeviceRu;
+            public string SignalNameRu;
+            public int TechPos;
+            public string VarNameEn;
+            public int DevIndex;
         }
 
         public struct IoModuleInfo
         {
             public int Id;
-            public string Type; 
+            public string Type;
             public string Address;
             public string Label;
             public List<IoSignalInfo> Signals;
@@ -88,8 +51,18 @@ namespace MiniTest
 
         private Dictionary<string, IoModuleInfo> ioModules = new Dictionary<string, IoModuleInfo>();
 
-        // Список устройств для конфигуратора
+        // Конфигуратор устройств
         private List<DeviceConfig> savedDevices = new List<DeviceConfig>();
+        
+        // Строго 22 устройства как в ТЗ
+        private readonly string[] deviceTypes = new string[] 
+        { 
+            "Долив", "Температура", "Крышки", "Жироуловитель", "Перемешивание", 
+            "Выпрямитель", "Фильтрование", "Дозатор", "Душирование", "Качалка", 
+            "Сушилка", "Слив", "ПИД-регуляция", "Воздуходувка", "Чиллер", 
+            "Барьер безопасности", "Подъемник", "Панель оператора", "Ряд ванн", 
+            "Автооператор", "Тележка", "Ванна"
+        };
 
         public struct DeviceConfig
         {
@@ -107,30 +80,27 @@ namespace MiniTest
         private void InitializeCustomComponents()
         {
             this.Text = "Excel to SCL Converter";
-            this.Size = new Size(1000, 700);
+            this.Size = new Size(1100, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            TabControl tabControl = new TabControl
-            {
-                Dock = DockStyle.Fill
-            };
+            TabControl tabControl = new TabControl { Dock = DockStyle.Fill };
 
-            // --- Вкладка 1: Спецификация ---
+            // Вкладка 1: Спецификация
             TabPage tabSpec = new TabPage("Спецификация");
             SetupSpecTab(tabSpec);
             tabControl.TabPages.Add(tabSpec);
 
-            // --- Вкладка 2: Ручная конфигурация ---
+            // Вкладка 2: Ручная конфигурация
             TabPage tabManual = new TabPage("Ручная конфигурация");
             SetupManualTab(tabManual);
             tabControl.TabPages.Add(tabManual);
 
-            // --- Вкладка 3: Конфигуратор устройств ---
+            // Вкладка 3: Конфигуратор устройств
             TabPage tabConfigurator = new TabPage("Конфигуратор устройств");
             SetupConfiguratorTab(tabConfigurator);
             tabControl.TabPages.Add(tabConfigurator);
 
-            // --- Вкладка 4: Ввод-вывод ---
+            // Вкладка 4: Ввод-вывод
             TabPage tabIO = new TabPage("Ввод-вывод");
             SetupIOTab(tabIO);
             tabControl.TabPages.Add(tabIO);
@@ -138,7 +108,7 @@ namespace MiniTest
             this.Controls.Add(tabControl);
         }
 
-        #region Вкладка Спецификация
+        #region Вкладка 1: Спецификация
 
         private void SetupSpecTab(TabPage tab)
         {
@@ -171,42 +141,7 @@ namespace MiniTest
             layout.Controls.Add(btnGenerate, 0, 1);
             layout.Controls.Add(lblStatus, 0, 2);
             layout.Controls.Add(txtOutput, 0, 3);
-
             tab.Controls.Add(layout);
-        }
-
-        private void SelectFile(string type, ref string pathVar)
-        {
-            using (var dlg = new OpenFileDialog())
-            {
-                dlg.Filter = "Excel Files|*.xlsx";
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    pathVar = dlg.FileName;
-                    UpdateStatusLabel(type, Path.GetFileName(pathVar));
-                }
-            }
-        }
-
-        private void UpdateStatusLabel(string type, string fileName)
-        {
-            foreach (TabPage tab in ((TabControl)this.Controls[0]).TabPages)
-            {
-                foreach (Control ctrl in tab.Controls)
-                {
-                    if (ctrl is TableLayoutPanel tlp)
-                    {
-                        foreach (Control c in tlp.Controls)
-                        {
-                            if (c is Label lbl && lbl.Name == $"lbl{type}Status")
-                            {
-                                lbl.Text = $"Выбран: {fileName}";
-                                lbl.ForeColor = Color.Green;
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void GenerateSpecCode()
@@ -225,16 +160,33 @@ namespace MiniTest
                 {
                     var sb = new StringBuilder();
                     bool found = false;
-                    
+
                     while (reader.Read())
                     {
                         if (reader.Name == "Config_Line")
                         {
                             found = true;
                             
-                            // Читаем заголовок для определения индексов колонок
-                            if (!reader.Read()) break; 
-                            
+                            // Поиск строки заголовка по наличию "№ п/п"
+                            int headerRowIdx = -1;
+                            for (int i = 0; i < 10; i++) // Ищем в первых 10 строках
+                            {
+                                if (!reader.Read()) break;
+                                var firstCell = reader.GetValue(0)?.ToString()?.Trim();
+                                if (firstCell == "№ п/п" || firstCell == "№ п/п ") 
+                                {
+                                    headerRowIdx = i;
+                                    break;
+                                }
+                            }
+
+                            if (headerRowIdx == -1)
+                            {
+                                sb.AppendLine("// Не найдена строка заголовка с колонкой '№ п/п'");
+                                break;
+                            }
+
+                            // Чтение заголовков из текущей позиции читателя
                             var headers = new Dictionary<string, int>();
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
@@ -243,26 +195,25 @@ namespace MiniTest
                                     headers[h] = i;
                             }
 
-                            // Проходим по строкам данных
+                            // Чтение данных
                             while (reader.Read())
                             {
-                                // Пропускаем строки без номера позиции
                                 var posVal = reader.GetValue(0);
-                                if (posVal == null || !int.TryParse(posVal.ToString(), out _)) continue;
+                                if (posVal == null || !double.TryParse(posVal.ToString(), out double posNum)) 
+                                    continue;
 
-                                // Генерируем код для каждого известного устройства
-                                foreach (var kvp in deviceNames)
+                                foreach (var dev in deviceTypes)
                                 {
-                                    string rusName = kvp.Key;
-                                    string engName = kvp.Value;
-                                    string propName = GetPropNameByDevice(rusName);
-
-                                    if (headers.ContainsKey(rusName))
+                                    if (headers.ContainsKey(dev))
                                     {
-                                        var val = reader.GetValue(headers[rusName]);
-                                        if (val != null && int.TryParse(val.ToString(), out int count) && count > 0)
+                                        var valObj = reader.GetValue(headers[dev]);
+                                        if (valObj != null && double.TryParse(valObj.ToString(), out double val) && val > 0)
                                         {
-                                            sb.AppendLine($"\"Options\".Count.{propName} := {count};");
+                                            string propName = GetPropNameByDevice(dev);
+                                            if (!string.IsNullOrEmpty(propName))
+                                            {
+                                                sb.AppendLine($"\"Options\".Count.{propName} := {(int)val};");
+                                            }
                                         }
                                     }
                                 }
@@ -270,26 +221,23 @@ namespace MiniTest
                             break;
                         }
                     }
-                    
-                    if (!found) 
-                        sb.AppendLine("Лист Config_Line не найден!");
-                    else if (sb.Length == 0)
-                        sb.AppendLine("// Данные не найдены или все значения равны 0");
-                    
+
+                    if (!found) sb.AppendLine("Лист Config_Line не найден!");
+                    if (sb.Length == 0) sb.AppendLine("// Данные не найдены или все значения равны 0");
+
                     ShowOutput("txtSpecOutput", sb.ToString());
                     SaveToFile("Spec_Generation.txt", sb.ToString());
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка: {ex.Message}\n{ex.StackTrace}");
+                MessageBox.Show($"Ошибка: {ex.Message}");
             }
         }
 
-        // Helper для маппинга Русское имя -> Свойство (Max...)
-        private string GetPropNameByDevice(string rusName)
+        private string GetPropNameByDevice(string device)
         {
-            switch (rusName)
+            switch (device)
             {
                 case "Панель оператора": return "MaxOP";
                 case "Ряд ванн": return "MaxRow";
@@ -313,13 +261,13 @@ namespace MiniTest
                 case "Чиллер": return "MaxChiller";
                 case "Барьер безопасности": return "MaxSafetyBar";
                 case "Подъемник": return "MaxLifter";
-                default: return "Unknown";
+                default: return null;
             }
         }
 
         #endregion
 
-        #region Вкладка Ручная конфигурация
+        #region Вкладка 2: Ручная конфигурация
 
         private void SetupManualTab(TabPage tab)
         {
@@ -344,9 +292,9 @@ namespace MiniTest
 
             foreach (var p in parameters)
             {
-                var panel = new Panel { Height = 35, Width = 850 };
-                var lbl = new Label { Text = p.Label + ":", Left = 10, Top = 8, Width = 220 };
-                var num = new NumericUpDown { Left = 240, Top = 6, Width = 100, Minimum = 0, Maximum = 1000 };
+                var panel = new Panel { Height = 35, Width = 900 };
+                var lbl = new Label { Text = p.Label + ":", Left = 10, Top = 8, Width = 250 };
+                var num = new NumericUpDown { Left = 270, Top = 6, Width = 100, Minimum = 0, Maximum = 1000 };
                 inputs[p.Prop] = num;
                 panel.Controls.AddRange(new Control[] { lbl, num });
                 flow.Controls.Add(panel);
@@ -355,7 +303,6 @@ namespace MiniTest
             var btnGen = new Button { Text = "Сгенерировать", Width = 200, Margin = new Padding(10), Height = 40 };
             btnGen.Click += (s, e) => GenerateManualCode(inputs);
             flow.Controls.Add(btnGen);
-
             tab.Controls.Add(flow);
         }
 
@@ -372,7 +319,7 @@ namespace MiniTest
 
         #endregion
 
-        #region Вкладка Конфигуратор устройств
+        #region Вкладка 3: Конфигуратор устройств
 
         private void SetupConfiguratorTab(TabPage tab)
         {
@@ -398,7 +345,7 @@ namespace MiniTest
             cmbDevice.Items.AddRange(deviceTypes);
             var numIdx = new NumericUpDown { Width = 100, Minimum = 1, Maximum = 1000 };
             
-            // Тип устройства - Input Field (NumericUpDown) от 1 до 100
+            // Тип устройства: Input Field (NumericUpDown) от 1 до 100
             var numType = new NumericUpDown { Width = 100, Minimum = 1, Maximum = 100 };
 
             layout.Controls.Add(new Label { Text = "Номер позиции:", TextAlign = ContentAlignment.MiddleRight, AutoSize = true }, 0, 0);
@@ -471,14 +418,37 @@ namespace MiniTest
 
         private string GetEngName(string rus)
         {
-            if (deviceNames.ContainsKey(rus))
-                return deviceNames[rus];
-            return "Unknown";
+            switch (rus)
+            {
+                case "Долив": return "Doliv";
+                case "Температура": return "Tmpr";
+                case "Крышки": return "Cover";
+                case "Жироуловитель": return "Jr";
+                case "Перемешивание": return "Mixer";
+                case "Выпрямитель": return "Vip";
+                case "Фильтрование": return "Filtr";
+                case "Дозатор": return "Doser";
+                case "Душирование": return "Shower";
+                case "Качалка": return "Pok";
+                case "Сушилка": return "Dry";
+                case "Слив": return "Sink";
+                case "ПИД-регуляция": return "PID";
+                case "Воздуходувка": return "Blower";
+                case "Чиллер": return "Chiller";
+                case "Барьер безопасности": return "SafetyBar";
+                case "Подъемник": return "Lifter";
+                case "Панель оператора": return "OP";
+                case "Ряд ванн": return "Row";
+                case "Автооператор": return "AO";
+                case "Тележка": return "Cart";
+                case "Ванна": return "Vann";
+                default: return "Unknown";
+            }
         }
 
         #endregion
 
-        #region Вкладка Ввод-Вывод
+        #region Вкладка 4: Ввод-Вывод
 
         private void SetupIOTab(TabPage tab)
         {
@@ -494,7 +464,12 @@ namespace MiniTest
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
             var btnIoSystem = new Button { Text = "1. Выбрать 'Система ввода-вывода.xlsx'", Dock = DockStyle.Fill, Font = new Font(this.Font, FontStyle.Bold) };
-            btnIoSystem.Click += (s, e) => SelectFile("ioSystem", ref ioSystemPath);
+            btnIoSystem.Click += (s, e) => {
+                if (SelectFile("ioSystem", ref ioSystemPath))
+                {
+                    ioModules.Clear();
+                }
+            };
 
             var btnSpecIo = new Button { Text = "2. Выбрать 'Спецификация.xlsx'", Dock = DockStyle.Fill };
             btnSpecIo.Click += (s, e) => SelectFile("specIo", ref specPath);
@@ -513,8 +488,44 @@ namespace MiniTest
             layout.Controls.Add(btnVars, 0, 2);
             layout.Controls.Add(btnGenIo, 0, 3);
             layout.Controls.Add(lblStatus, 0, 4);
-
             tab.Controls.Add(layout);
+        }
+
+        private bool SelectFile(string type, ref string pathVar)
+        {
+            using (var dlg = new OpenFileDialog())
+            {
+                dlg.Filter = "Excel Files|*.xlsx";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    pathVar = dlg.FileName;
+                    UpdateStatusLabel(type, Path.GetFileName(pathVar));
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void UpdateStatusLabel(string type, string fileName)
+        {
+            foreach (TabPage tab in ((TabControl)this.Controls[0]).TabPages)
+            {
+                foreach (Control ctrl in tab.Controls)
+                {
+                    if (ctrl is TableLayoutPanel tlp)
+                    {
+                        foreach (Control c in tlp.Controls)
+                        {
+                            if (c is Label lblFound && lblFound.Name == $"lbl{type}Status")
+                            {
+                                lblFound.Text = $"Выбран: {fileName}";
+                                lblFound.ForeColor = Color.Green;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void GenerateIOCode()
@@ -531,7 +542,7 @@ namespace MiniTest
             {
                 var variablesMap = ReadVariablesFile(variablesPath);
                 var specMap = ReadSpecFile(specPath);
-
+                
                 var sb = new StringBuilder();
                 ReadAndGenerateIO(ioSystemPath, variablesMap, specMap, sb);
 
@@ -556,25 +567,22 @@ namespace MiniTest
             using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
             using (var reader = ExcelReaderFactory.CreateReader(stream))
             {
-                do
+                while (reader.Read())
                 {
-                    while (reader.Read())
+                    for (int i = 0; i < reader.FieldCount - 1; i++)
                     {
-                        for (int i = 0; i < reader.FieldCount - 1; i++)
-                        {
-                            var col1 = reader.GetValue(i)?.ToString()?.Trim();
-                            var col2 = reader.GetValue(i + 1)?.ToString()?.Trim();
+                        var col1 = reader.GetValue(i)?.ToString()?.Trim();
+                        var col2 = reader.GetValue(i + 1)?.ToString()?.Trim();
 
-                            if (!string.IsNullOrEmpty(col1) && !string.IsNullOrEmpty(col2) && 
-                                col1 != "DI" && col1 != "DO" && col1 != "AI" && col1 != "AO" &&
-                                col1 != "Переменная" && col1 != "no data")
-                            {
-                                if (!map.ContainsKey(col1))
-                                    map[col1] = col2;
-                            }
+                        if (!string.IsNullOrEmpty(col1) && !string.IsNullOrEmpty(col2) && 
+                            col1 != "DI" && col1 != "DO" && col1 != "AI" && col1 != "AO" &&
+                            col1 != "Переменная" && col1 != "no data")
+                        {
+                            if (!map.ContainsKey(col1))
+                                map[col1] = col2;
                         }
                     }
-                } while (reader.NextResult());
+                }
             }
             return map;
         }
@@ -590,7 +598,21 @@ namespace MiniTest
                 {
                     if (reader.Name == "Config_Line")
                     {
-                        reader.Read(); // Заголовок
+                        // Поиск заголовка
+                        int headerRowIdx = -1;
+                        for (int k = 0; k < 10; k++)
+                        {
+                            if (!reader.Read()) break;
+                            var firstCell = reader.GetValue(0)?.ToString()?.Trim();
+                            if (firstCell == "№ п/п" || firstCell == "№ п/п ") 
+                            {
+                                headerRowIdx = k;
+                                break;
+                            }
+                        }
+
+                        if (headerRowIdx == -1) break;
+
                         var headers = new Dictionary<string, int>();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
@@ -601,7 +623,8 @@ namespace MiniTest
                         while (reader.Read())
                         {
                             var posIdVal = reader.GetValue(0);
-                            if (posIdVal == null || !int.TryParse(posIdVal.ToString(), out int posId)) continue;
+                            if (posIdVal == null || !double.TryParse(posIdVal.ToString(), out double posIdDouble)) continue;
+                            int posId = (int)posIdDouble;
 
                             var devices = new Dictionary<string, int>();
                             foreach (var devType in deviceTypes)
@@ -609,9 +632,9 @@ namespace MiniTest
                                 if (headers.ContainsKey(devType))
                                 {
                                     var val = reader.GetValue(headers[devType]);
-                                    if (val != null && int.TryParse(val.ToString(), out int idx) && idx > 0)
+                                    if (val != null && double.TryParse(val.ToString(), out double idxDouble) && idxDouble > 0)
                                     {
-                                        devices[devType] = idx;
+                                        devices[devType] = (int)idxDouble;
                                     }
                                 }
                             }
@@ -634,9 +657,20 @@ namespace MiniTest
                 {
                     if (reader.Name == "ШС")
                     {
-                        // Пропуск служебных строк
-                        reader.Read(); reader.Read(); reader.Read(); reader.Read();
-                        if (!reader.Read()) break; // Заголовок
+                        // Поиск заголовка
+                        int headerRowIdx = -1;
+                        for (int k = 0; k < 10; k++)
+                        {
+                            if (!reader.Read()) break;
+                            var firstCell = reader.GetValue(0)?.ToString()?.Trim();
+                            if (firstCell == "шкаф" || firstCell == "шкаф ") 
+                            {
+                                headerRowIdx = k;
+                                break;
+                            }
+                        }
+
+                        if (headerRowIdx == -1) break;
 
                         var colIndices = new Dictionary<string, int>();
                         for (int i = 0; i < reader.FieldCount; i++)
@@ -675,7 +709,7 @@ namespace MiniTest
                             int GetIntVal(string key)
                             {
                                 var s = GetVal(key);
-                                return int.TryParse(s, out var res) ? res : 0;
+                                return double.TryParse(s, out var res) ? (int)res : 0;
                             }
 
                             string typeRaw = GetVal("type").Trim();
@@ -733,7 +767,7 @@ namespace MiniTest
                             modulesDict[moduleKey].Signals.Add(signalInfo);
                         }
 
-                        // Генерация кода
+                        // Генерация
                         foreach (var mod in modulesDict.Values.OrderBy(m => m.Id))
                         {
                             var sortedSignals = mod.Signals.OrderBy(s => s.SignalNumber).ToList();
@@ -745,7 +779,7 @@ namespace MiniTest
 
                             sb.AppendLine($"REGION Module {mod.Id}");
                             sb.AppendLine($"// {mod.Label}. Адрес {mod.Address}");
-                            sb.AppendLine($"{maskVar} := 0; // Обнулим маску {(mod.Type == "DO" ? "выходов" : "входов")}");
+                            sb.AppendLine($"{maskVar} := 0;");
 
                             foreach (var sig in sortedSignals)
                             {
