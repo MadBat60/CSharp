@@ -85,7 +85,7 @@ class ExcelToSCLConverter:
     
     def __init__(self, excel_path: str):
         self.excel_path = Path(excel_path)
-        self.wb = openpyxl.load_workbook(excel_path, data_only=True)
+        self.wb = None
         self.devices: Dict[str, List[DeviceConfig]] = {}
         self.module_channels: Dict[str, List[ModuleChannel]] = {
             'AI': [],
@@ -94,6 +94,36 @@ class ExcelToSCLConverter:
             'DO': []
         }
         self.max_counts: Dict[str, int] = {}
+        self._loaded = False
+    
+    def analyze_workbook(self) -> dict:
+        """Анализ workbook и возврат информации о структуре"""
+        if not self._loaded:
+            self.wb = openpyxl.load_workbook(self.excel_path, data_only=True)
+            self._loaded = True
+        
+        # Проверяем наличие необходимых листов
+        sheet_names = self.wb.sheetnames
+        has_shs = 'ШС' in sheet_names
+        has_shsau = 'ШСАУ' in sheet_names
+        
+        return {
+            'sheets': sheet_names,
+            'has_shs': has_shs,
+            'has_shsau': has_shsau,
+            'file_path': str(self.excel_path)
+        }
+    
+    def parse_all(self):
+        """Выполнить полный парсинг всех листов"""
+        if not self._loaded:
+            self.wb = openpyxl.load_workbook(self.excel_path, data_only=True)
+            self._loaded = True
+        
+        if 'ШС' in self.wb.sheetnames:
+            self.parse_sheet_shs()
+        if 'ШСАУ' in self.wb.sheetnames:
+            self.parse_sheet_shsau()
         
     def resolve_formula(self, value, row_cache: dict) -> any:
         """Разрешение формул Excel вида =$A$7"""
@@ -601,6 +631,10 @@ class ExcelToSCLConverter:
     
     def generate_all(self, output_path: str):
         """Генерация всего кода и сохранение в файл"""
+        # Сначала выполняем парсинг, если еще не сделано
+        if not self._loaded:
+            self.parse_all()
+        
         output = Path(output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
         
@@ -637,6 +671,57 @@ class ExcelToSCLConverter:
         
         print(f"Код сгенерирован и сохранен в {output}")
         return str(output)
+    
+    def generate_full_code(self) -> str:
+        """Генерация полного кода в виде строки"""
+        # Сначала выполняем парсинг, если еще не сделано
+        if not self._loaded:
+            self.parse_all()
+        
+        lines = [
+            f'// Сгенерировано из {self.excel_path.name}',
+            f'// Дата: {datetime.now().strftime("%d.%m.%Y %H:%M")}',
+            '',
+            self.generate_max_counts_code(),
+            '',
+        ]
+        
+        # Порядок регионов для вывода
+        region_order = ['Doliv', 'Temperature', 'Cover', 'Jr', 'Mixer', 'Vip', 
+                       'Filtr', 'Doser', 'Shower', 'Pok', 'Dry', 'Sink', 
+                       'PID', 'Blower', 'Chiller', 'SafetyBar', 'VentAbsorb']
+        
+        for region in region_order:
+            code = self.generate_region_code(region)
+            if code:
+                lines.append(code)
+                lines.append('')
+        
+        # Модули ввода/вывода
+        lines.append('// Пример для AI')
+        lines.append(self.generate_module_ai_code())
+        lines.append('')
+        
+        lines.append('// Пример для DO')
+        lines.append(self.generate_module_do_code())
+        
+        return '\n'.join(lines)
+    
+    def get_statistics(self) -> dict:
+        """Получение статистики по parsed данным"""
+        # Сначала выполняем парсинг, если еще не сделано
+        if not self._loaded:
+            self.parse_all()
+        
+        total_devices = sum(len(devs) for devs in self.devices.values())
+        total_channels = sum(len(chans) for chans in self.module_channels.values())
+        
+        return {
+            'total_devices': total_devices,
+            'total_channels': total_channels,
+            'devices_by_region': {k: len(v) for k, v in self.devices.items()},
+            'channels_by_type': {k: len(v) for k, v in self.module_channels.items()}
+        }
 
 
 def main():
