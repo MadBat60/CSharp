@@ -39,15 +39,17 @@ namespace MiniTest
         private Button btnGenerate;
         private RichTextBox rtbLog;
 
-        // Элементы вкладки "Ввод-вывод" (заготовка)
-        private TextBox txtExcelPath2;
-        private TextBox txtTxtPath2;
-        private NumericUpDown numStartRow2;
-        private NumericUpDown numEndRow2;
-        private Button btnBrowseExcel2;
-        private Button btnBrowseTxt2;
-        private Button btnGenerate2;
-        private RichTextBox rtbLog2;
+        // Элементы вкладки "Ввод-вывод"
+        private TextBox txtIO_SystemPath;      // Система ввода-вывода.xlsx
+        private TextBox txtIO_SpecPath;        // Спецификация.xlsx
+        private TextBox txtIO_VarPath;         // Список переменных от системы ввода-вывода.xlsx
+        private TextBox txtIOTxtPath;          // Выходной TXT файл
+        private Button btnBrowseIO_System;
+        private Button btnBrowseIO_Spec;
+        private Button btnBrowseIO_Var;
+        private Button btnBrowseIOTxt;
+        private Button btnGenerateIO;
+        private RichTextBox rtbLogIO;
 
         // Элементы вкладки "Ручная конфигурация"
         private Dictionary<string, NumericUpDown> manualInputs = new Dictionary<string, NumericUpDown>();
@@ -221,86 +223,115 @@ namespace MiniTest
 
         private void SetupIOTab()
         {
-            Label lblExcelPath2 = new Label();
-            lblExcelPath2.Text = "Excel файл (XLSX):";
-            lblExcelPath2.Location = new Point(10, 15);
-            lblExcelPath2.Size = new Size(120, 25);
-
-            txtExcelPath2 = new TextBox();
-            txtExcelPath2.Location = new Point(140, 15);
-            txtExcelPath2.Size = new Size(580, 25);
-
-            btnBrowseExcel2 = new Button();
-            btnBrowseExcel2.Text = "...";
-            btnBrowseExcel2.Location = new Point(730, 15);
-            btnBrowseExcel2.Size = new Size(35, 25);
-            btnBrowseExcel2.Click += BtnBrowseExcel2_Click;
-
-            Label lblTxtPath2 = new Label();
-            lblTxtPath2.Text = "TXT файл:";
-            lblTxtPath2.Location = new Point(10, 50);
-            lblTxtPath2.Size = new Size(120, 25);
-
-            txtTxtPath2 = new TextBox();
-            txtTxtPath2.Location = new Point(140, 50);
-            txtTxtPath2.Size = new Size(580, 25);
-
-            btnBrowseTxt2 = new Button();
-            btnBrowseTxt2.Text = "...";
-            btnBrowseTxt2.Location = new Point(730, 50);
-            btnBrowseTxt2.Size = new Size(35, 25);
-            btnBrowseTxt2.Click += BtnBrowseTxt2_Click;
-
-            Label lblStartRow2 = new Label();
-            lblStartRow2.Text = "Начальная строка:";
-            lblStartRow2.Location = new Point(10, 85);
-            lblStartRow2.Size = new Size(110, 25);
-
-            numStartRow2 = new NumericUpDown();
-            numStartRow2.Location = new Point(130, 85);
-            numStartRow2.Size = new Size(60, 25);
-            numStartRow2.Minimum = 1;
-            numStartRow2.Maximum = 1000;
-            numStartRow2.Value = 8;
-
-            Label lblEndRow2 = new Label();
-            lblEndRow2.Text = "Конечная строка:";
-            lblEndRow2.Location = new Point(210, 85);
-            lblEndRow2.Size = new Size(100, 25);
-
-            numEndRow2 = new NumericUpDown();
-            numEndRow2.Location = new Point(320, 85);
-            numEndRow2.Size = new Size(60, 25);
-            numEndRow2.Minimum = 1;
-            numEndRow2.Maximum = 1000;
-            numEndRow2.Value = 50;
-
-            btnGenerate2 = new Button();
-            btnGenerate2.Text = "Сгенерировать";
-            btnGenerate2.Location = new Point(350, 125);
-            btnGenerate2.Size = new Size(160, 35);
-            btnGenerate2.BackColor = Color.FromArgb(76, 175, 80);
-            btnGenerate2.ForeColor = Color.White;
-            btnGenerate2.Click += BtnGenerate2_Click;
-
-            Label lblLog2 = new Label();
-            lblLog2.Text = "Лог выполнения:";
-            lblLog2.Location = new Point(10, 175);
-            lblLog2.Size = new Size(120, 20);
-
-            rtbLog2 = new RichTextBox();
-            rtbLog2.Location = new Point(10, 195);
-            rtbLog2.Size = new Size(830, 360);
-            rtbLog2.ReadOnly = true;
-            rtbLog2.BackColor = Color.Black;
-            rtbLog2.ForeColor = Color.LightGreen;
-            rtbLog2.Font = new Font("Consolas", 9);
-
+            int y = 10;
+            int labelWidth = 280;
+            int textBoxWidth = 450;
+            int btnWidth = 35;
+            int startX = 10;
+            
+            // Система ввода-вывода
+            Label lblIO_System = new Label();
+            lblIO_System.Text = "Система ввода-вывода.xlsx:";
+            lblIO_System.Location = new Point(startX, y);
+            lblIO_System.Size = new Size(labelWidth, 25);
+            
+            txtIO_SystemPath = new TextBox();
+            txtIO_SystemPath.Location = new Point(startX + labelWidth, y);
+            txtIO_SystemPath.Size = new Size(textBoxWidth, 25);
+            
+            btnBrowseIO_System = new Button();
+            btnBrowseIO_System.Text = "...";
+            btnBrowseIO_System.Location = new Point(startX + labelWidth + textBoxWidth + 5, y);
+            btnBrowseIO_System.Size = new Size(btnWidth, 25);
+            btnBrowseIO_System.Click += BtnBrowseIO_System_Click;
+            
+            y += 35;
+            
+            // Спецификация
+            Label lblIO_Spec = new Label();
+            lblIO_Spec.Text = "Спецификация.xlsx:";
+            lblIO_Spec.Location = new Point(startX, y);
+            lblIO_Spec.Size = new Size(labelWidth, 25);
+            
+            txtIO_SpecPath = new TextBox();
+            txtIO_SpecPath.Location = new Point(startX + labelWidth, y);
+            txtIO_SpecPath.Size = new Size(textBoxWidth, 25);
+            
+            btnBrowseIO_Spec = new Button();
+            btnBrowseIO_Spec.Text = "...";
+            btnBrowseIO_Spec.Location = new Point(startX + labelWidth + textBoxWidth + 5, y);
+            btnBrowseIO_Spec.Size = new Size(btnWidth, 25);
+            btnBrowseIO_Spec.Click += BtnBrowseIO_Spec_Click;
+            
+            y += 35;
+            
+            // Список переменных
+            Label lblIO_Var = new Label();
+            lblIO_Var.Text = "Список переменных.xlsx:";
+            lblIO_Var.Location = new Point(startX, y);
+            lblIO_Var.Size = new Size(labelWidth, 25);
+            
+            txtIO_VarPath = new TextBox();
+            txtIO_VarPath.Location = new Point(startX + labelWidth, y);
+            txtIO_VarPath.Size = new Size(textBoxWidth, 25);
+            
+            btnBrowseIO_Var = new Button();
+            btnBrowseIO_Var.Text = "...";
+            btnBrowseIO_Var.Location = new Point(startX + labelWidth + textBoxWidth + 5, y);
+            btnBrowseIO_Var.Size = new Size(btnWidth, 25);
+            btnBrowseIO_Var.Click += BtnBrowseIO_Var_Click;
+            
+            y += 35;
+            
+            // Выходной TXT файл
+            Label lblIOTxt = new Label();
+            lblIOTxt.Text = "Выходной TXT файл:";
+            lblIOTxt.Location = new Point(startX, y);
+            lblIOTxt.Size = new Size(labelWidth, 25);
+            
+            txtIOTxtPath = new TextBox();
+            txtIOTxtPath.Location = new Point(startX + labelWidth, y);
+            txtIOTxtPath.Size = new Size(textBoxWidth, 25);
+            
+            btnBrowseIOTxt = new Button();
+            btnBrowseIOTxt.Text = "...";
+            btnBrowseIOTxt.Location = new Point(startX + labelWidth + textBoxWidth + 5, y);
+            btnBrowseIOTxt.Size = new Size(btnWidth, 25);
+            btnBrowseIOTxt.Click += BtnBrowseIOTxt_Click;
+            
+            y += 45;
+            
+            // Кнопка генерации
+            btnGenerateIO = new Button();
+            btnGenerateIO.Text = "Сгенерировать SCL";
+            btnGenerateIO.Location = new Point(350, y);
+            btnGenerateIO.Size = new Size(160, 35);
+            btnGenerateIO.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerateIO.ForeColor = Color.White;
+            btnGenerateIO.Click += BtnGenerateIO_Click;
+            
+            y += 50;
+            
+            // Лог
+            Label lblLogIO = new Label();
+            lblLogIO.Text = "Лог выполнения:";
+            lblLogIO.Location = new Point(startX, y);
+            lblLogIO.Size = new Size(120, 20);
+            
+            rtbLogIO = new RichTextBox();
+            rtbLogIO.Location = new Point(startX, y + 20);
+            rtbLogIO.Size = new Size(830, 480);
+            rtbLogIO.ReadOnly = true;
+            rtbLogIO.BackColor = Color.Black;
+            rtbLogIO.ForeColor = Color.LightGreen;
+            rtbLogIO.Font = new Font("Consolas", 9);
+            
             tabIO.Controls.AddRange(new Control[] {
-                lblExcelPath2, txtExcelPath2, btnBrowseExcel2,
-                lblTxtPath2, txtTxtPath2, btnBrowseTxt2,
-                lblStartRow2, numStartRow2, lblEndRow2, numEndRow2,
-                btnGenerate2, lblLog2, rtbLog2
+                lblIO_System, txtIO_SystemPath, btnBrowseIO_System,
+                lblIO_Spec, txtIO_SpecPath, btnBrowseIO_Spec,
+                lblIO_Var, txtIO_VarPath, btnBrowseIO_Var,
+                lblIOTxt, txtIOTxtPath, btnBrowseIOTxt,
+                btnGenerateIO, lblLogIO, rtbLogIO
             });
         }
 
@@ -637,30 +668,127 @@ namespace MiniTest
             }
         }
 
-        private void BtnBrowseExcel2_Click(object sender, EventArgs e)
+        private void BtnBrowseIO_System_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog dlg = new OpenFileDialog())
             {
                 dlg.Filter = "Excel файлы (*.xlsx)|*.xlsx|Все файлы (*.*)|*.*";
+                dlg.Title = "Выберите файл 'Система ввода-вывода.xlsx'";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    txtExcelPath2.Text = dlg.FileName;
-                    Log($"Выбран файл (вкладка 2): {dlg.FileName}");
+                    txtIO_SystemPath.Text = dlg.FileName;
+                    LogIO($"Выбран файл системы ввода-вывода: {dlg.FileName}");
                 }
             }
         }
 
-        private void BtnBrowseTxt2_Click(object sender, EventArgs e)
+        private void BtnBrowseIO_Spec_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Filter = "Excel файлы (*.xlsx)|*.xlsx|Все файлы (*.*)|*.*";
+                dlg.Title = "Выберите файл 'Спецификация.xlsx'";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtIO_SpecPath.Text = dlg.FileName;
+                    LogIO($"Выбран файл спецификации: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnBrowseIO_Var_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Filter = "Excel файлы (*.xlsx)|*.xlsx|Все файлы (*.*)|*.*";
+                dlg.Title = "Выберите файл 'Список переменных от системы ввода-вывода.xlsx'";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtIO_VarPath.Text = dlg.FileName;
+                    LogIO($"Выбран файл списка переменных: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnBrowseIOTxt_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog dlg = new SaveFileDialog())
             {
                 dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
                 dlg.DefaultExt = "txt";
+                dlg.Title = "Сохранить SCL файл";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    txtTxtPath2.Text = dlg.FileName;
-                    Log($"Файл (вкладка 2) будет сохранен: {dlg.FileName}");
+                    txtIOTxtPath.Text = dlg.FileName;
+                    LogIO($"Файл будет сохранен: {dlg.FileName}");
                 }
+            }
+        }
+
+        private void BtnGenerateIO_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtIO_SystemPath.Text))
+            {
+                MessageBox.Show("Выберите файл 'Система ввода-вывода.xlsx'!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (string.IsNullOrEmpty(txtIO_SpecPath.Text))
+            {
+                MessageBox.Show("Выберите файл 'Спецификация.xlsx'!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (string.IsNullOrEmpty(txtIO_VarPath.Text))
+            {
+                MessageBox.Show("Выберите файл 'Список переменных от системы ввода-вывода.xlsx'!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (string.IsNullOrEmpty(txtIOTxtPath.Text))
+            {
+                MessageBox.Show("Выберите путь для сохранения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!File.Exists(txtIO_SystemPath.Text))
+            {
+                MessageBox.Show("Файл 'Система ввода-вывода.xlsx' не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (!File.Exists(txtIO_SpecPath.Text))
+            {
+                MessageBox.Show("Файл 'Спецификация.xlsx' не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (!File.Exists(txtIO_VarPath.Text))
+            {
+                MessageBox.Show("Файл 'Список переменных от системы ввода-вывода.xlsx' не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            btnGenerateIO.Enabled = false;
+            progressBar.Visible = true;
+            LogIO("Начало генерации SCL (Ввод-вывод)...");
+
+            try
+            {
+                string result = GenerateIOSCL();
+                File.WriteAllText(txtIOTxtPath.Text, result, Encoding.UTF8);
+                LogIO("✅ Генерация SCL успешно завершена!");
+                LogIO($"📄 Файл сохранен: {txtIOTxtPath.Text}");
+
+                if (MessageBox.Show("Открыть полученный файл?", "Готово",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", txtIOTxtPath.Text);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogIO($"❌ Ошибка: {ex.Message}");
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnGenerateIO.Enabled = true;
+                progressBar.Visible = false;
             }
         }
 
@@ -716,10 +844,386 @@ namespace MiniTest
             }
         }
 
-        private void BtnGenerate2_Click(object sender, EventArgs e)
+        private void LogIO(string message)
         {
-            MessageBox.Show("Функционал вкладки 'Ввод-вывод' будет добавлен позже.", "Информация",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (rtbLogIO.InvokeRequired)
+            {
+                rtbLogIO.Invoke(new Action<string>(LogIO), message);
+            }
+            else
+            {
+                rtbLogIO.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
+                rtbLogIO.ScrollToCaret();
+            }
+        }
+
+        private string GenerateIOSCL()
+        {
+            StringBuilder result = new StringBuilder();
+            result.AppendLine("// SCL код карты ввода-вывода сгенерирован автоматически");
+            result.AppendLine($"// Дата генерации: {DateTime.Now}");
+            result.AppendLine();
+
+            // Словари для маппинга
+            Dictionary<string, string> diVariables = new Dictionary<string, string>();
+            Dictionary<string, string> doVariables = new Dictionary<string, string>();
+            Dictionary<int, string> specPositions = new Dictionary<int, string>();
+            Dictionary<string, DeviceSpecInfo> specDeviceMap = new Dictionary<string, DeviceSpecInfo>();
+
+            // 1. Читаем "Список переменных" (DI и DO таблицы)
+            LogIO("Чтение файла 'Список переменных от системы ввода-вывода.xlsx'...");
+            using (FileStream fs = new FileStream(txtIO_VarPath.Text, FileMode.Open, FileAccess.Read))
+            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
+            {
+                ISheet sheet = workbook.GetSheetAt(0);
+                
+                // Читаем DI таблицу (колонки A и B)
+                int rowIdx = 0;
+                while (rowIdx < sheet.LastRowNum)
+                {
+                    IRow row = sheet.GetRow(rowIdx);
+                    if (row == null) { rowIdx++; continue; }
+                    
+                    ICell diCell = row.GetCell(0);
+                    ICell varCell = row.GetCell(1);
+                    
+                    if (diCell != null && varCell != null)
+                    {
+                        string diName = GetCellValue(diCell).Trim();
+                        string varName = GetCellValue(varCell).Trim();
+                        
+                        if (!string.IsNullOrEmpty(diName) && !string.IsNullOrEmpty(varName) && 
+                            diName != "DI" && diName != "Переменная")
+                        {
+                            if (!diVariables.ContainsKey(diName))
+                                diVariables[diName] = varName;
+                        }
+                    }
+                    
+                    // Проверяем, не началась ли таблица DO (колонка D содержит "DO")
+                    ICell doHeaderCell = row.GetCell(3);
+                    if (doHeaderCell != null && GetCellValue(doHeaderCell).Trim() == "DO")
+                        break;
+                    
+                    rowIdx++;
+                }
+                
+                // Читаем DO таблицу (колонки D и E)
+                rowIdx = 0;
+                bool inDoTable = false;
+                while (rowIdx < sheet.LastRowNum)
+                {
+                    IRow row = sheet.GetRow(rowIdx);
+                    if (row == null) { rowIdx++; continue; }
+                    
+                    ICell doHeaderCell = row.GetCell(3);
+                    if (doHeaderCell != null && GetCellValue(doHeaderCell).Trim() == "DO")
+                    {
+                        inDoTable = true;
+                        rowIdx++;
+                        continue;
+                    }
+                    
+                    if (inDoTable)
+                    {
+                        ICell doCell = row.GetCell(3);
+                        ICell varCell = row.GetCell(4);
+                        
+                        if (doCell != null && varCell != null)
+                        {
+                            string doName = GetCellValue(doCell).Trim();
+                            string varName = GetCellValue(varCell).Trim();
+                            
+                            if (!string.IsNullOrEmpty(doName) && !string.IsNullOrEmpty(varName) && 
+                                doName != "DO" && doName != "Переменная")
+                            {
+                                if (!doVariables.ContainsKey(doName))
+                                    doVariables[doName] = varName;
+                            }
+                        }
+                        
+                        // Проверяем конец таблицы DO
+                        ICell aiHeaderCell = row.GetCell(6);
+                        if (aiHeaderCell != null && GetCellValue(aiHeaderCell).Trim() == "AI")
+                            break;
+                    }
+                    
+                    rowIdx++;
+                }
+            }
+            LogIO($"Загружено DI переменных: {diVariables.Count}, DO переменных: {doVariables.Count}");
+
+            // 2. Читаем "Спецификация" (лист Config_Line)
+            LogIO("Чтение файла 'Спецификация.xlsx'...");
+            using (FileStream fs = new FileStream(txtIO_SpecPath.Text, FileMode.Open, FileAccess.Read))
+            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
+            {
+                ISheet sheet = null;
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    if (workbook.GetSheetName(i).Contains("Config_Line"))
+                    {
+                        sheet = workbook.GetSheetAt(i);
+                        break;
+                    }
+                }
+                
+                if (sheet == null)
+                {
+                    throw new Exception("Лист 'Config_Line' не найден в файле Спецификации!");
+                }
+                
+                // Находим заголовок с колонками устройств
+                int headerRow = 0;
+                Dictionary<string, int> deviceColIndex = new Dictionary<string, int>();
+                
+                IRow headerRowData = sheet.GetRow(headerRow);
+                if (headerRowData != null)
+                {
+                    for (int col = 0; col < headerRowData.LastCellNum; col++)
+                    {
+                        string cellValue = GetCellValue(headerRowData.GetCell(col)).Trim();
+                        // Сопоставляем русские названия с именами устройств
+                        if (cellValue == "Долив") deviceColIndex["Doliv"] = col;
+                        else if (cellValue == "Температура") deviceColIndex["Tmpr"] = col;
+                        else if (cellValue == "Крышки" || cellValue == "Крышка") deviceColIndex["Cover"] = col;
+                        else if (cellValue == "Жироуловитель") deviceColIndex["Jr"] = col;
+                        else if (cellValue == "Перемешивание") deviceColIndex["Mixer"] = col;
+                        else if (cellValue == "Выпрямитель") deviceColIndex["Vip"] = col;
+                        else if (cellValue == "Фильтрование") deviceColIndex["Filtr"] = col;
+                        else if (cellValue == "Дозирование") deviceColIndex["Doser"] = col;
+                        else if (cellValue == "Душирование") deviceColIndex["Shower"] = col;
+                        else if (cellValue == "Качание") deviceColIndex["Pok"] = col;
+                        else if (cellValue == "Сушилка") deviceColIndex["Dry"] = col;
+                        else if (cellValue == "Барьер безопасности") deviceColIndex["SafetyBar"] = col;
+                        else if (cellValue == "Слив") deviceColIndex["Sink"] = col;
+                        else if (cellValue == "Воздуходувка") deviceColIndex["Blower"] = col;
+                        else if (cellValue == "Чиллер") deviceColIndex["Chiller"] = col;
+                        else if (cellValue == "Подъемник") deviceColIndex["Lifter"] = col;
+                    }
+                }
+                
+                // Читаем позиции
+                for (int rowNum = 1; rowNum <= sheet.LastRowNum; rowNum++)
+                {
+                    IRow row = sheet.GetRow(rowNum);
+                    if (row == null) continue;
+                    
+                    CellValueInfo posInfo = GetCellValueInfo(row.GetCell(0));
+                    if (!int.TryParse(posInfo.Value, out int positionNum))
+                        continue;
+                    
+                    specPositions[positionNum] = $"Позиция {positionNum}";
+                    
+                    // Для каждого устройства сохраняем индекс
+                    foreach (var devPair in deviceColIndex)
+                    {
+                        ICell cell = row.GetCell(devPair.Value);
+                        if (cell != null)
+                        {
+                            CellValueInfo valInfo = GetCellValueInfo(cell);
+                            if (int.TryParse(valInfo.Value, out int devIndex) && devIndex > 0)
+                            {
+                                string key = $"{devPair.Key}_{positionNum}";
+                                specDeviceMap[key] = new DeviceSpecInfo { DeviceName = devPair.Key, Index = devIndex };
+                            }
+                        }
+                    }
+                }
+            }
+            LogIO($"Загружено позиций: {specPositions.Count}, привязок устройств: {specDeviceMap.Count}");
+
+            // 3. Читаем "Система ввода-вывода" (лист ШС) и генерируем код
+            LogIO("Чтение файла 'Система ввода-вывода.xlsx' и генерация SCL...");
+            
+            // Группы модулей: ключ = тип+адрес+обозначение
+            Dictionary<string, IOModule> modules = new Dictionary<string, IOModule>();
+            int moduleCounter = 0;
+            
+            using (FileStream fs = new FileStream(txtIO_SystemPath.Text, FileMode.Open, FileAccess.Read))
+            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
+            {
+                ISheet sheet = null;
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    if (workbook.GetSheetName(i).Contains("ШС"))
+                    {
+                        sheet = workbook.GetSheetAt(i);
+                        break;
+                    }
+                }
+                
+                if (sheet == null)
+                {
+                    throw new Exception("Лист 'ШС' не найден в файле Системы ввода-вывода!");
+                }
+                
+                // Определяем индексы колонок по заголовку
+                int colType = -1, colAddress = -1, colDesignation = -1, colSignalNum = -1;
+                int colDevice = -1, colSignalName = -1, colTechPos = -1;
+                
+                IRow headerRow = sheet.GetRow(0);
+                if (headerRow != null)
+                {
+                    for (int col = 0; col < headerRow.LastCellNum; col++)
+                    {
+                        string cellVal = GetCellValue(headerRow.GetCell(col)).Trim().ToLower();
+                        if (cellVal == "тип") colType = col;
+                        else if (cellVal == "адрес") colAddress = col;
+                        else if (cellVal == "обозн.") colDesignation = col;
+                        else if (cellVal == "№ вх." || cellVal == "номер входа") colSignalNum = col;
+                        else if (cellVal == "устройство") colDevice = col;
+                        else if (cellVal == "наименование сигнала") colSignalName = col;
+                        else if (cellVal == "тех. поз." || cellVal == "технологическая позиция") colTechPos = col;
+                    }
+                }
+                
+                if (colType < 0 || colAddress < 0 || colDesignation < 0 || colSignalNum < 0 || 
+                    colDevice < 0 || colSignalName < 0 || colTechPos < 0)
+                {
+                    throw new Exception("Не все требуемые колонки найдены в листе 'ШС'!");
+                }
+                
+                // Читаем строки
+                for (int rowNum = 1; rowNum <= sheet.LastRowNum; rowNum++)
+                {
+                    IRow row = sheet.GetRow(rowNum);
+                    if (row == null) continue;
+                    
+                    string type = GetCellValue(row.GetCell(colType)).Trim();
+                    string address = GetCellValue(row.GetCell(colAddress)).Trim();
+                    string designation = GetCellValue(row.GetCell(colDesignation)).Trim();
+                    string signalNumStr = GetCellValue(row.GetCell(colSignalNum)).Trim();
+                    string deviceName = GetCellValue(row.GetCell(colDevice)).Trim();
+                    string signalName = GetCellValue(row.GetCell(colSignalName)).Trim();
+                    string techPosStr = GetCellValue(row.GetCell(colTechPos)).Trim();
+                    
+                    // Пропускаем некорректные строки
+                    if (type != "DI" && type != "DO") continue;
+                    if (string.IsNullOrEmpty(address) || address.ToLower() == "no data") continue;
+                    if (string.IsNullOrEmpty(designation)) continue;
+                    if (!int.TryParse(signalNumStr, out int signalNum)) continue;
+                    if (string.IsNullOrEmpty(signalName)) continue;
+                    if (string.IsNullOrEmpty(techPosStr)) continue;
+                    
+                    // Создаем ключ модуля
+                    string moduleKey = $"{type}_{address}_{designation}";
+                    
+                    if (!modules.ContainsKey(moduleKey))
+                    {
+                        moduleCounter++;
+                        modules[moduleKey] = new IOModule
+                        {
+                            Number = moduleCounter,
+                            Type = type,
+                            Address = address,
+                            Designation = designation,
+                            Signals = new List<IOSignal>()
+                        };
+                    }
+                    
+                    // Ищем устройство в спецификации
+                    if (!int.TryParse(techPosStr, out int techPos))
+                        continue;
+                    
+                    string specKey = "";
+                    // Сопоставляем русское название устройства с именем
+                    if (deviceName.Contains("Долив")) specKey = "Doliv";
+                    else if (deviceName.Contains("Температур")) specKey = "Tmpr";
+                    else if (deviceName.Contains("Крышк")) specKey = "Cover";
+                    else if (deviceName.Contains("Жироуловит")) specKey = "Jr";
+                    else if (deviceName.Contains("Перемешиван")) specKey = "Mixer";
+                    else if (deviceName.Contains("Выпрямит")) specKey = "Vip";
+                    else if (deviceName.Contains("Фильтрован")) specKey = "Filtr";
+                    else if (deviceName.Contains("Дозир")) specKey = "Doser";
+                    else if (deviceName.Contains("Душирован")) specKey = "Shower";
+                    else if (deviceName.Contains("Качан")) specKey = "Pok";
+                    else if (deviceName.Contains("Сушил")) specKey = "Dry";
+                    else if (deviceName.Contains("Барьер")) specKey = "SafetyBar";
+                    else if (deviceName.Contains("Слив")) specKey = "Sink";
+                    else if (deviceName.Contains("Воздуходув")) specKey = "Blower";
+                    else if (deviceName.Contains("Чиллер")) specKey = "Chiller";
+                    else if (deviceName.Contains("Подъемник")) specKey = "Lifter";
+                    else continue; // Устройство не найдено
+                    
+                    string deviceSpecKey = $"{specKey}_{techPos}";
+                    if (!specDeviceMap.ContainsKey(deviceSpecKey))
+                        continue; // Позиция не найдена в спецификации
+                    
+                    DeviceSpecInfo specInfo = specDeviceMap[deviceSpecKey];
+                    
+                    // Ищем переменную в списке
+                    string variableName = "";
+                    if (type == "DI")
+                    {
+                        if (diVariables.ContainsKey(signalName))
+                            variableName = diVariables[signalName];
+                    }
+                    else if (type == "DO")
+                    {
+                        if (doVariables.ContainsKey(signalName))
+                            variableName = doVariables[signalName];
+                    }
+                    
+                    if (string.IsNullOrEmpty(variableName))
+                        continue; // Переменная не найдена
+                    
+                    // Добавляем сигнал в модуль
+                    modules[moduleKey].Signals.Add(new IOSignal
+                    {
+                        SignalNumber = signalNum,
+                        DeviceName = specInfo.DeviceName,
+                        DeviceIndex = specInfo.Index,
+                        VariableName = variableName
+                    });
+                }
+            }
+            
+            LogIO($"Найдено модулей: {modules.Count}");
+            
+            // Генерируем SCL код по модулям
+            foreach (var modulePair in modules.OrderBy(k => k.Value.Number))
+            {
+                IOModule module = modulePair.Value;
+                
+                result.AppendLine($"REGION Module {module.Number}");
+                result.AppendLine($"// {module.Designation}. Адрес {module.Address}");
+                
+                if (module.Type == "DO")
+                {
+                    result.AppendLine("#dwModuleBitMask := 0; // Обнулим маску выходов");
+                }
+                else
+                {
+                    result.AppendLine("#dwModuleBitMask := 0; // Обнулим маску входов");
+                }
+                
+                // Сортируем сигналы по номеру
+                foreach (var signal in module.Signals.OrderBy(s => s.SignalNumber))
+                {
+                    result.AppendLine($"#xBit.b{signal.SignalNumber} := \"{signal.DeviceName}\".Dev[{signal.DeviceIndex}].{signal.VariableName};");
+                }
+                
+                // Генерируем OR операции
+                foreach (var signal in module.Signals.OrderBy(s => s.SignalNumber))
+                {
+                    result.AppendLine($"#dwModuleBitMask := #dwModuleBitMask OR #xBit.b{signal.SignalNumber};");
+                }
+                
+                if (module.Type == "DO")
+                {
+                    result.AppendLine($"\"MapDout\".Module[{module.Number}].BitMask := #dwModuleBitMask;");
+                }
+                else
+                {
+                    result.AppendLine($"\"MapDin\".Module[{module.Number}].BitMask := #dwModuleBitMask;");
+                }
+                
+                result.AppendLine("END_REGION");
+                result.AppendLine();
+            }
+            
+            return result.ToString();
         }
 
         private string GenerateSCL()
@@ -842,7 +1346,7 @@ namespace MiniTest
                                     return new CellValueInfo(cell.StringCellValue?.Trim() ?? "", false);
                                 case CellType.Numeric:
                                     double fVal = cell.NumericCellValue;
-                                    string fStr = (fVal == Math.Floor(fVal)) ? fVal.ToString("0") : fVal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                    string fStr = (fVal == Math.Floor(fVal)) ? fVal.ToString("0") : fStr = fVal.ToString(System.Globalization.CultureInfo.InvariantCulture);
                                     return new CellValueInfo(fStr, true);
                                 case CellType.Boolean:
                                     return new CellValueInfo(cell.BooleanCellValue.ToString(), false);
@@ -859,6 +1363,12 @@ namespace MiniTest
             {
                 return new CellValueInfo("", false);
             }
+        }
+
+        private string GetCellValue(ICell cell)
+        {
+            CellValueInfo info = GetCellValueInfo(cell);
+            return info.Value;
         }
 
         private void Log(string message)
@@ -917,6 +1427,29 @@ namespace MiniTest
                 Index = index;
                 Type = type;
             }
+        }
+
+        class DeviceSpecInfo
+        {
+            public string DeviceName { get; set; }
+            public int Index { get; set; }
+        }
+
+        class IOModule
+        {
+            public int Number { get; set; }
+            public string Type { get; set; }
+            public string Address { get; set; }
+            public string Designation { get; set; }
+            public List<IOSignal> Signals { get; set; }
+        }
+
+        class IOSignal
+        {
+            public int SignalNumber { get; set; }
+            public string DeviceName { get; set; }
+            public int DeviceIndex { get; set; }
+            public string VariableName { get; set; }
         }
     }
 }
