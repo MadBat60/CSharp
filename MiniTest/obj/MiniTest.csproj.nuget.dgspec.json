@@ -44,14 +44,6 @@
         "net6.0-windows7.0": {
           "targetAlias": "net6.0-windows",
           "dependencies": {
-            "ExcelDataReader": {
-              "target": "Package",
-              "version": "[3.6.0, )"
-            },
-            "ExcelDataReader.DataSet": {
-              "target": "Package",
-              "version": "[3.6.0, )"
-            },
             "NPOI": {
               "target": "Package",
               "version": "[2.7.6, )"
@@ -74,6 +66,10 @@
               "version": "[6.0.36, 6.0.36]"
             },
             {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
               "name": "Microsoft.NETCore.App.Host.win-x64",
               "version": "[6.0.36, 6.0.36]"
             },
@@ -82,7 +78,15 @@
               "version": "[6.0.36, 6.0.36]"
             },
             {
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
               "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[6.0.36, 6.0.36]"
             }
           ],
@@ -95,6 +99,11 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win10-x64": {
+          "#import": []
         }
       }
     }

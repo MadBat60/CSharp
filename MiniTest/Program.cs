@@ -1,826 +1,801 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using ExcelDataReader;
-using System.Drawing;
+using NPOI.XSSF.UserModel;
+using NPOI.SS.UserModel;
 
 namespace MiniTest
 {
-    public static class Program
+    // Главная точка входа в программу
+    static class Program
     {
-        [STAThread]
-        public static void Main()
+        [STAThread] // Это нужно для работы с формами Windows
+        static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            // Включаем красивое оформление кнопок
             Application.EnableVisualStyles();
+            // Настраиваем совместимость отображения текста
             Application.SetCompatibleTextRenderingDefault(false);
+            // Запускаем главное окно программы
             Application.Run(new MainForm());
         }
     }
 
-    public partial class MainForm : Form
+    // Главное окно программы
+    public class MainForm : Form
     {
-        // Пути к файлам
-        private string ioSystemPath = "";
-        private string specPath = "";
-        private string variablesPath = "";
-
-        // Структуры для Ввод-Вывод
-        public struct IoSignalInfo
-        {
-            public int SignalNumber;
-            public string DeviceRu;
-            public string SignalNameRu;
-            public int TechPos;
-            public string VarNameEn;
-            public int DevIndex;
-        }
-
-        public struct IoModuleInfo
-        {
-            public int Id;
-            public string Type;
-            public string Address;
-            public string Label;
-            public List<IoSignalInfo> Signals;
-        }
-
-        private Dictionary<string, IoModuleInfo> ioModules = new Dictionary<string, IoModuleInfo>();
-
-        // Конфигуратор устройств
-        private List<DeviceConfig> savedDevices = new List<DeviceConfig>();
+        // ========== ПОЛЯ КЛАССА ==========
         
-        // Строго 22 устройства как в ТЗ
-        private readonly string[] deviceTypes = new string[] 
-        { 
-            "Долив", "Температура", "Крышки", "Жироуловитель", "Перемешивание", 
-            "Выпрямитель", "Фильтрование", "Дозатор", "Душирование", "Качалка", 
-            "Сушилка", "Слив", "ПИД-регуляция", "Воздуходувка", "Чиллер", 
-            "Барьер безопасности", "Подъемник", "Панель оператора", "Ряд ванн", 
-            "Автооператор", "Тележка", "Ванна"
-        };
+        // Вкладки
+        private TabControl tabControl;
+        private TabPage tabSpec;       // Спецификация
+        private TabPage tabIO;         // Ввод-вывод (заготовка)
+        private TabPage tabCounts;     // Количество устройств
 
-        public struct DeviceConfig
-        {
-            public int Position;
-            public string DeviceType;
-            public int Index;
-            public int TypeCode;
-        }
+        // Элементы вкладки "Спецификация"
+        private TextBox txtExcelPath;
+        private TextBox txtTxtPath;
+        private NumericUpDown numStartRow;
+        private NumericUpDown numEndRow;
+        private Button btnBrowseExcel;
+        private Button btnBrowseTxt;
+        private Button btnGenerate;
+        private RichTextBox rtbLog;
 
+        // Элементы вкладки "Ввод-вывод" (заготовка)
+        private TextBox txtExcelPath2;
+        private TextBox txtTxtPath2;
+        private NumericUpDown numStartRow2;
+        private NumericUpDown numEndRow2;
+        private Button btnBrowseExcel2;
+        private Button btnBrowseTxt2;
+        private Button btnGenerate2;
+        private RichTextBox rtbLog2;
+
+        // Элементы вкладки "Количество устройств"
+        private Panel panelCounts; // Панель с прокруткой
+        private Button btnGenerateCounts;
+        private TextBox txtTxtPathCounts;
+        private Button btnBrowseTxtCounts;
+        
+        // Список полей ввода для количества устройств (чтобы легко считывать значения)
+        private List<NumericUpDown> countInputs = new List<NumericUpDown>();
+
+        // Общие элементы
+        private Button btnExit;
+        private Label lblStatus;
+        private ProgressBar progressBar;
+        
+        // Список устройств для вкладки "Спецификация"
+        private List<Device> devices;
+
+        // ========== КОНСТРУКТОР ==========
         public MainForm()
         {
-            InitializeCustomComponents();
+            InitializeComponent();
+            InitializeDevices();
+            InitializeCountInputs();
         }
 
-        private void InitializeCustomComponents()
+        // ========== НАСТРОЙКА ВНЕШНЕГО ВИДА ==========
+        private void InitializeComponent()
         {
-            this.Text = "Excel to SCL Converter";
-            this.Size = new Size(1100, 750);
+            // ----- Настройки самого окна -----
+            this.Text = "Excel to SCL Конвертер";
+            this.Size = new Size(900, 750); // Увеличили высоту для удобства
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
 
-            TabControl tabControl = new TabControl { Dock = DockStyle.Fill };
-
-            // Вкладка 1: Спецификация
-            TabPage tabSpec = new TabPage("Спецификация");
-            SetupSpecTab(tabSpec);
-            tabControl.TabPages.Add(tabSpec);
-
-            // Вкладка 2: Ручная конфигурация
-            TabPage tabManual = new TabPage("Ручная конфигурация");
-            SetupManualTab(tabManual);
-            tabControl.TabPages.Add(tabManual);
-
-            // Вкладка 3: Конфигуратор устройств
-            TabPage tabConfigurator = new TabPage("Конфигуратор устройств");
-            SetupConfiguratorTab(tabConfigurator);
-            tabControl.TabPages.Add(tabConfigurator);
-
-            // Вкладка 4: Ввод-вывод
-            TabPage tabIO = new TabPage("Ввод-вывод");
-            SetupIOTab(tabIO);
-            tabControl.TabPages.Add(tabIO);
-
-            this.Controls.Add(tabControl);
-        }
-
-        #region Вкладка 1: Спецификация
-
-        private void SetupSpecTab(TabPage tab)
-        {
-            var layout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 4,
-                Padding = new Padding(10)
-            };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            var btnSelect = new Button { Text = "Выбрать файл Спецификация.xlsx", Dock = DockStyle.Fill };
-            btnSelect.Click += (s, e) => SelectFile("spec", ref specPath);
-
-            var btnGenerate = new Button { Text = "Сгенерировать код", Dock = DockStyle.Fill };
-            btnGenerate.Click += (s, e) => GenerateSpecCode();
-
-            var lblStatus = new Label { Text = "Файл не выбран", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
-            lblStatus.Name = "lblSpecStatus";
-
-            var txtOutput = new TextBox { Multiline = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Fill, ReadOnly = true };
-            txtOutput.Name = "txtSpecOutput";
-
-            layout.Controls.Add(btnSelect, 0, 0);
-            layout.Controls.Add(btnGenerate, 0, 1);
-            layout.Controls.Add(lblStatus, 0, 2);
-            layout.Controls.Add(txtOutput, 0, 3);
-            tab.Controls.Add(layout);
-        }
-
-        private void GenerateSpecCode()
-        {
-            if (!File.Exists(specPath))
-            {
-                MessageBox.Show("Файл спецификации не выбран!");
-                return;
-            }
-
-            try
-            {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                using (var stream = File.Open(specPath, FileMode.Open, FileAccess.Read))
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
-                {
-                    var sb = new StringBuilder();
-                    bool found = false;
-
-                    while (reader.Read())
-                    {
-                        if (reader.Name == "Config_Line")
-                        {
-                            found = true;
-                            
-                            // Поиск строки заголовка по наличию "№ п/п"
-                            int headerRowIdx = -1;
-                            for (int i = 0; i < 10; i++) // Ищем в первых 10 строках
-                            {
-                                if (!reader.Read()) break;
-                                var firstCell = reader.GetValue(0)?.ToString()?.Trim();
-                                if (firstCell == "№ п/п" || firstCell == "№ п/п ") 
-                                {
-                                    headerRowIdx = i;
-                                    break;
-                                }
-                            }
-
-                            if (headerRowIdx == -1)
-                            {
-                                sb.AppendLine("// Не найдена строка заголовка с колонкой '№ п/п'");
-                                break;
-                            }
-
-                            // Чтение заголовков из текущей позиции читателя
-                            var headers = new Dictionary<string, int>();
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                var h = reader.GetValue(i)?.ToString()?.Trim() ?? "";
-                                if (!string.IsNullOrEmpty(h) && !headers.ContainsKey(h))
-                                    headers[h] = i;
-                            }
-
-                            // Чтение данных
-                            while (reader.Read())
-                            {
-                                var posVal = reader.GetValue(0);
-                                if (posVal == null || !double.TryParse(posVal.ToString(), out double posNum)) 
-                                    continue;
-
-                                foreach (var dev in deviceTypes)
-                                {
-                                    if (headers.ContainsKey(dev))
-                                    {
-                                        var valObj = reader.GetValue(headers[dev]);
-                                        if (valObj != null && double.TryParse(valObj.ToString(), out double val) && val > 0)
-                                        {
-                                            string propName = GetPropNameByDevice(dev);
-                                            if (!string.IsNullOrEmpty(propName))
-                                            {
-                                                sb.AppendLine($"\"Options\".Count.{propName} := {(int)val};");
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        }
-                    }
-
-                    if (!found) sb.AppendLine("Лист Config_Line не найден!");
-                    if (sb.Length == 0) sb.AppendLine("// Данные не найдены или все значения равны 0");
-
-                    ShowOutput("txtSpecOutput", sb.ToString());
-                    SaveToFile("Spec_Generation.txt", sb.ToString());
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}");
-            }
-        }
-
-        private string GetPropNameByDevice(string device)
-        {
-            switch (device)
-            {
-                case "Панель оператора": return "MaxOP";
-                case "Ряд ванн": return "MaxRow";
-                case "Автооператор": return "MaxAO";
-                case "Тележка": return "MaxCart";
-                case "Ванна": return "MaxVann";
-                case "Долив": return "MaxDoliv";
-                case "Температура": return "MaxTemperature";
-                case "Крышки": return "MaxCover";
-                case "Жироуловитель": return "MaxJr";
-                case "Перемешивание": return "MaxMixer";
-                case "Выпрямитель": return "MaxVip";
-                case "Фильтрование": return "MaxFiltr";
-                case "Дозатор": return "MaxDoser";
-                case "Душирование": return "MaxShower";
-                case "Качалка": return "MaxPok";
-                case "Сушилка": return "MaxDry";
-                case "Слив": return "MaxSink";
-                case "ПИД-регуляция": return "MaxPID";
-                case "Воздуходувка": return "MaxBlower";
-                case "Чиллер": return "MaxChiller";
-                case "Барьер безопасности": return "MaxSafetyBar";
-                case "Подъемник": return "MaxLifter";
-                default: return null;
-            }
-        }
-
-        #endregion
-
-        #region Вкладка 2: Ручная конфигурация
-
-        private void SetupManualTab(TabPage tab)
-        {
-            var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
+            // ----- Создаём вкладки -----
+            tabControl = new TabControl();
+            tabControl.Location = new Point(10, 10);
+            tabControl.Size = new Size(860, 600);
             
-            var parameters = new (string Label, string Prop)[]
-            {
-                ("Число панелей оператора", "MaxOP"), ("Число рядов ванн", "MaxRow"),
-                ("Число автооператоров", "MaxAO"), ("Число тележек", "MaxCart"),
-                ("Число ванн", "MaxVann"), ("Число доливов", "MaxDoliv"),
-                ("Число нагревов/охлаждений", "MaxTemperature"), ("Число крышек", "MaxCover"),
-                ("Число жироуловителей", "MaxJr"), ("Число перемешиваний", "MaxMixer"),
-                ("Число выпрямителей", "MaxVip"), ("Число фильтрований", "MaxFiltr"),
-                ("Число дозаторов", "MaxDoser"), ("Число душирований", "MaxShower"),
-                ("Число качалок", "MaxPok"), ("Число сушилок", "MaxDry"),
-                ("Число сливов", "MaxSink"), ("Число ПИД-регуляций", "MaxPID"),
-                ("Число воздуходувок", "MaxBlower"), ("Число чиллеров", "MaxChiller"),
-                ("Число барьеров безопасности", "MaxSafetyBar"), ("Число подъемников", "MaxLifter")
-            };
-
-            var inputs = new Dictionary<string, NumericUpDown>();
-
-            foreach (var p in parameters)
-            {
-                var panel = new Panel { Height = 35, Width = 900 };
-                var lbl = new Label { Text = p.Label + ":", Left = 10, Top = 8, Width = 250 };
-                var num = new NumericUpDown { Left = 270, Top = 6, Width = 100, Minimum = 0, Maximum = 1000 };
-                inputs[p.Prop] = num;
-                panel.Controls.AddRange(new Control[] { lbl, num });
-                flow.Controls.Add(panel);
-            }
-
-            var btnGen = new Button { Text = "Сгенерировать", Width = 200, Margin = new Padding(10), Height = 40 };
-            btnGen.Click += (s, e) => GenerateManualCode(inputs);
-            flow.Controls.Add(btnGen);
-            tab.Controls.Add(flow);
-        }
-
-        private void GenerateManualCode(Dictionary<string, NumericUpDown> inputs)
-        {
-            var sb = new StringBuilder();
-            foreach (var kvp in inputs)
-            {
-                sb.AppendLine($"\"Options\".Count.{kvp.Key} := {kvp.Value.Value};");
-            }
-            SaveToFile("Manual_Config.txt", sb.ToString());
-            MessageBox.Show("Код ручной конфигурации сгенерирован!");
-        }
-
-        #endregion
-
-        #region Вкладка 3: Конфигуратор устройств
-
-        private void SetupConfiguratorTab(TabPage tab)
-        {
-            var layout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 6,
-                RowCount = 5,
-                Padding = new Padding(20)
-            };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tabSpec = new TabPage();
+            tabSpec.Text = "Спецификация";
             
-            for(int i=0; i<5; i++) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tabIO = new TabPage();
+            tabIO.Text = "Ввод-вывод";
 
-            var numPos = new NumericUpDown { Width = 100, Minimum = 1, Maximum = 1000 };
-            var cmbDevice = new ComboBox { Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
-            cmbDevice.Items.AddRange(deviceTypes);
-            var numIdx = new NumericUpDown { Width = 100, Minimum = 1, Maximum = 1000 };
+            tabCounts = new TabPage();
+            tabCounts.Text = "Количество устройств";
             
-            // Тип устройства: Input Field (NumericUpDown) от 1 до 100
-            var numType = new NumericUpDown { Width = 100, Minimum = 1, Maximum = 100 };
-
-            layout.Controls.Add(new Label { Text = "Номер позиции:", TextAlign = ContentAlignment.MiddleRight, AutoSize = true }, 0, 0);
-            layout.Controls.Add(numPos, 1, 0);
-            layout.Controls.Add(new Label { Text = "Устройство:", TextAlign = ContentAlignment.MiddleRight, AutoSize = true }, 2, 0);
-            layout.Controls.Add(cmbDevice, 3, 0);
+            tabControl.Controls.Add(tabSpec);
+            tabControl.Controls.Add(tabIO);
+            tabControl.Controls.Add(tabCounts);
             
-            layout.Controls.Add(new Label { Text = "Порядковый номер:", TextAlign = ContentAlignment.MiddleRight, AutoSize = true }, 0, 1);
-            layout.Controls.Add(numIdx, 1, 1);
-            layout.Controls.Add(new Label { Text = "Тип устройства:", TextAlign = ContentAlignment.MiddleRight, AutoSize = true }, 2, 1);
-            layout.Controls.Add(numType, 3, 1);
+            // ================= ВКЛАДКА 1: СПЕЦИФИКАЦИЯ =================
+            SetupSpecTab();
 
-            var btnSave = new Button { Text = "Сохранить", Width = 100, Height = 30 };
-            btnSave.Click += (s, e) => SaveDeviceConfig((int)numPos.Value, cmbDevice.Text, (int)numIdx.Value, (int)numType.Value);
+            // ================= ВКЛАДКА 2: ВВОД-ВЫВОД (ЗАГОТОВКА) =================
+            SetupIOTab();
+
+            // ================= ВКЛАДКА 3: КОЛИЧЕСТВО УСТРОЙСТВ =================
+            SetupCountsTab();
+
+            // ----- Статус бар -----
+            lblStatus = new Label();
+            lblStatus.Text = "Готов к работе";
+            lblStatus.Location = new Point(10, 620);
+            lblStatus.Size = new Size(600, 25);
             
-            var btnReset = new Button { Text = "Сброс", Width = 100, Height = 30 };
-            btnReset.Click += (s, e) => { savedDevices.Clear(); UpdateConfigStatus(); };
+            progressBar = new ProgressBar();
+            progressBar.Location = new Point(620, 620);
+            progressBar.Size = new Size(230, 20);
+            progressBar.Visible = false;
+            progressBar.Style = ProgressBarStyle.Marquee;
 
-            layout.Controls.Add(btnSave, 4, 0); 
-            layout.Controls.Add(btnReset, 4, 1); 
+            // ----- Кнопка выхода (общая) -----
+            btnExit = new Button();
+            btnExit.Text = "Выход";
+            btnExit.Location = new Point(740, 615);
+            btnExit.Size = new Size(100, 35);
+            btnExit.BackColor = Color.FromArgb(244, 67, 54);
+            btnExit.ForeColor = Color.White;
+            btnExit.Click += (s, e) => Application.Exit();
 
-            var lblStatus = new Label { Text = "Сохранено устройств: 0", AutoSize = true };
-            lblStatus.Name = "lblConfigStatus";
-            layout.Controls.Add(lblStatus, 0, 2);
-
-            var btnGenDev = new Button { Text = "Сгенерировать код устройств", Width = 200, Height = 40 };
-            btnGenDev.Click += (s, e) => GenerateDeviceCode();
-            layout.Controls.Add(btnGenDev, 0, 3);
-
-            tab.Controls.Add(layout);
+            // ----- Добавляем все элементы на форму -----
+            this.Controls.AddRange(new Control[] {
+                tabControl,
+                btnExit,
+                lblStatus, 
+                progressBar
+            });
         }
 
-        private void SaveDeviceConfig(int pos, string devType, int idx, int typeCode)
+        private void SetupSpecTab()
         {
-            if (string.IsNullOrEmpty(devType))
-            {
-                MessageBox.Show("Выберите устройство!");
-                return;
-            }
+            // Поле для Excel файла
+            Label lblExcelPath = new Label();
+            lblExcelPath.Text = "Excel файл (XLSX):";
+            lblExcelPath.Location = new Point(10, 15);
+            lblExcelPath.Size = new Size(120, 25);
+            
+            txtExcelPath = new TextBox();
+            txtExcelPath.Location = new Point(140, 15);
+            txtExcelPath.Size = new Size(580, 25);
+            
+            btnBrowseExcel = new Button();
+            btnBrowseExcel.Text = "...";
+            btnBrowseExcel.Location = new Point(730, 15);
+            btnBrowseExcel.Size = new Size(35, 25);
+            btnBrowseExcel.Click += BtnBrowseExcel_Click;
 
-            if (savedDevices.Any(d => d.DeviceType == devType && d.Index == idx))
-            {
-                MessageBox.Show($"Устройство {devType} с индексом {idx} уже сохранено!");
-                return;
-            }
+            // Поле для TXT файла
+            Label lblTxtPath = new Label();
+            lblTxtPath.Text = "TXT файл:";
+            lblTxtPath.Location = new Point(10, 50);
+            lblTxtPath.Size = new Size(120, 25);
+            
+            txtTxtPath = new TextBox();
+            txtTxtPath.Location = new Point(140, 50);
+            txtTxtPath.Size = new Size(580, 25);
+            
+            btnBrowseTxt = new Button();
+            btnBrowseTxt.Text = "...";
+            btnBrowseTxt.Location = new Point(730, 50);
+            btnBrowseTxt.Size = new Size(35, 25);
+            btnBrowseTxt.Click += BtnBrowseTxt_Click;
 
-            savedDevices.Add(new DeviceConfig { Position = pos, DeviceType = devType, Index = idx, TypeCode = typeCode });
-            UpdateConfigStatus();
-            MessageBox.Show("Устройство сохранено!");
+            // Выбор диапазона строк
+            Label lblStartRow = new Label();
+            lblStartRow.Text = "Начальная строка:";
+            lblStartRow.Location = new Point(10, 85);
+            lblStartRow.Size = new Size(110, 25);
+            
+            numStartRow = new NumericUpDown();
+            numStartRow.Location = new Point(130, 85);
+            numStartRow.Size = new Size(60, 25);
+            numStartRow.Minimum = 1;
+            numStartRow.Maximum = 1000;
+            numStartRow.Value = 8;
+
+            Label lblEndRow = new Label();
+            lblEndRow.Text = "Конечная строка:";
+            lblEndRow.Location = new Point(210, 85);
+            lblEndRow.Size = new Size(100, 25);
+            
+            numEndRow = new NumericUpDown();
+            numEndRow.Location = new Point(320, 85);
+            numEndRow.Size = new Size(60, 25);
+            numEndRow.Minimum = 1;
+            numEndRow.Maximum = 1000;
+            numEndRow.Value = 50;
+
+            // Кнопка генерации
+            btnGenerate = new Button();
+            btnGenerate.Text = "Сгенерировать";
+            btnGenerate.Location = new Point(350, 125); // Сдвинуто в центр
+            btnGenerate.Size = new Size(160, 35);
+            btnGenerate.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerate.ForeColor = Color.White;
+            btnGenerate.Click += BtnGenerate_Click;
+
+            // Лог выполнения
+            Label lblLog = new Label();
+            lblLog.Text = "Лог выполнения:";
+            lblLog.Location = new Point(10, 175);
+            lblLog.Size = new Size(120, 20);
+            
+            rtbLog = new RichTextBox();
+            rtbLog.Location = new Point(10, 195);
+            rtbLog.Size = new Size(830, 360);
+            rtbLog.ReadOnly = true;
+            rtbLog.BackColor = Color.Black;
+            rtbLog.ForeColor = Color.LightGreen;
+            rtbLog.Font = new Font("Consolas", 9);
+
+            tabSpec.Controls.AddRange(new Control[] {
+                lblExcelPath, txtExcelPath, btnBrowseExcel,
+                lblTxtPath, txtTxtPath, btnBrowseTxt,
+                lblStartRow, numStartRow, lblEndRow, numEndRow,
+                btnGenerate,
+                lblLog, rtbLog
+            });
         }
 
-        private void UpdateConfigStatus()
+        private void SetupIOTab()
         {
-            var lbl = this.Controls.Find("lblConfigStatus", true).FirstOrDefault() as Label;
-            if (lbl != null) lbl.Text = $"Сохранено устройств: {savedDevices.Count}";
+            // Аналогично первой вкладке, но без логики пока
+            Label lblExcelPath2 = new Label();
+            lblExcelPath2.Text = "Excel файл (XLSX):";
+            lblExcelPath2.Location = new Point(10, 15);
+            lblExcelPath2.Size = new Size(120, 25);
+            
+            txtExcelPath2 = new TextBox();
+            txtExcelPath2.Location = new Point(140, 15);
+            txtExcelPath2.Size = new Size(580, 25);
+            
+            btnBrowseExcel2 = new Button();
+            btnBrowseExcel2.Text = "...";
+            btnBrowseExcel2.Location = new Point(730, 15);
+            btnBrowseExcel2.Size = new Size(35, 25);
+            btnBrowseExcel2.Click += BtnBrowseExcel2_Click;
+            
+            Label lblTxtPath2 = new Label();
+            lblTxtPath2.Text = "TXT файл:";
+            lblTxtPath2.Location = new Point(10, 50);
+            lblTxtPath2.Size = new Size(120, 25);
+            
+            txtTxtPath2 = new TextBox();
+            txtTxtPath2.Location = new Point(140, 50);
+            txtTxtPath2.Size = new Size(580, 25);
+            
+            btnBrowseTxt2 = new Button();
+            btnBrowseTxt2.Text = "...";
+            btnBrowseTxt2.Location = new Point(730, 50);
+            btnBrowseTxt2.Size = new Size(35, 25);
+            btnBrowseTxt2.Click += BtnBrowseTxt2_Click;
+
+            Label lblStartRow2 = new Label();
+            lblStartRow2.Text = "Начальная строка:";
+            lblStartRow2.Location = new Point(10, 85);
+            lblStartRow2.Size = new Size(110, 25);
+            
+            numStartRow2 = new NumericUpDown();
+            numStartRow2.Location = new Point(130, 85);
+            numStartRow2.Size = new Size(60, 25);
+            numStartRow2.Minimum = 1;
+            numStartRow2.Maximum = 1000;
+            numStartRow2.Value = 8;
+
+            Label lblEndRow2 = new Label();
+            lblEndRow2.Text = "Конечная строка:";
+            lblEndRow2.Location = new Point(210, 85);
+            lblEndRow2.Size = new Size(100, 25);
+            
+            numEndRow2 = new NumericUpDown();
+            numEndRow2.Location = new Point(320, 85);
+            numEndRow2.Size = new Size(60, 25);
+            numEndRow2.Minimum = 1;
+            numEndRow2.Maximum = 1000;
+            numEndRow2.Value = 50;
+
+            btnGenerate2 = new Button();
+            btnGenerate2.Text = "Сгенерировать";
+            btnGenerate2.Location = new Point(350, 125);
+            btnGenerate2.Size = new Size(160, 35);
+            btnGenerate2.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerate2.ForeColor = Color.White;
+            btnGenerate2.Click += BtnGenerate2_Click;
+
+            Label lblLog2 = new Label();
+            lblLog2.Text = "Лог выполнения:";
+            lblLog2.Location = new Point(10, 175);
+            lblLog2.Size = new Size(120, 20);
+            
+            rtbLog2 = new RichTextBox();
+            rtbLog2.Location = new Point(10, 195);
+            rtbLog2.Size = new Size(830, 360);
+            rtbLog2.ReadOnly = true;
+            rtbLog2.BackColor = Color.Black;
+            rtbLog2.ForeColor = Color.LightGreen;
+            rtbLog2.Font = new Font("Consolas", 9);
+            
+            tabIO.Controls.AddRange(new Control[] {
+                lblExcelPath2, txtExcelPath2, btnBrowseExcel2,
+                lblTxtPath2, txtTxtPath2, btnBrowseTxt2,
+                lblStartRow2, numStartRow2, lblEndRow2, numEndRow2,
+                btnGenerate2,
+                lblLog2, rtbLog2
+            });
         }
 
-        private void GenerateDeviceCode()
+        private void SetupCountsTab()
         {
-            var sb = new StringBuilder();
-            foreach (var dev in savedDevices)
-            {
-                string engName = GetEngName(dev.DeviceType);
-                sb.AppendLine($"\"{engName}\".Dev[{dev.Index}].CfgPlace := {dev.Position};");
-                sb.AppendLine($"\"{engName}\".Dev[{dev.Index}].CfgType := {dev.TypeCode};");
-            }
-            SaveToFile("Device_Config_Code.txt", sb.ToString());
-            MessageBox.Show("Код устройств сгенерирован!");
+            // Кнопка выбора выходного файла
+            Label lblTxtPathCounts = new Label();
+            lblTxtPathCounts.Text = "TXT файл:";
+            lblTxtPathCounts.Location = new Point(10, 15);
+            lblTxtPathCounts.Size = new Size(120, 25);
+            
+            txtTxtPathCounts = new TextBox();
+            txtTxtPathCounts.Location = new Point(140, 15);
+            txtTxtPathCounts.Size = new Size(580, 25);
+            
+            btnBrowseTxtCounts = new Button();
+            btnBrowseTxtCounts.Text = "...";
+            btnBrowseTxtCounts.Location = new Point(730, 15);
+            btnBrowseTxtCounts.Size = new Size(35, 25);
+            btnBrowseTxtCounts.Click += BtnBrowseTxtCounts_Click;
+
+            // Панель с прокруткой для полей ввода
+            panelCounts = new Panel();
+            panelCounts.Location = new Point(10, 50);
+            panelCounts.Size = new Size(830, 460);
+            panelCounts.AutoScroll = true;
+            // Важно: BorderStyle из System.Windows.Forms
+            panelCounts.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+
+            // Кнопка генерации
+            btnGenerateCounts = new Button();
+            btnGenerateCounts.Text = "Сгенерировать количества";
+            btnGenerateCounts.Location = new Point(350, 520); // Под панелью
+            btnGenerateCounts.Size = new Size(200, 35);
+            btnGenerateCounts.BackColor = Color.FromArgb(76, 175, 80);
+            btnGenerateCounts.ForeColor = Color.White;
+            btnGenerateCounts.Click += BtnGenerateCounts_Click;
+
+            tabCounts.Controls.AddRange(new Control[] {
+                lblTxtPathCounts, txtTxtPathCounts, btnBrowseTxtCounts,
+                panelCounts,
+                btnGenerateCounts
+            });
         }
 
-        private string GetEngName(string rus)
+        // Инициализация полей ввода для вкладки "Количество устройств"
+        private void InitializeCountInputs()
         {
-            switch (rus)
+            var inputsConfig = new[]
             {
-                case "Долив": return "Doliv";
-                case "Температура": return "Tmpr";
-                case "Крышки": return "Cover";
-                case "Жироуловитель": return "Jr";
-                case "Перемешивание": return "Mixer";
-                case "Выпрямитель": return "Vip";
-                case "Фильтрование": return "Filtr";
-                case "Дозатор": return "Doser";
-                case "Душирование": return "Shower";
-                case "Качалка": return "Pok";
-                case "Сушилка": return "Dry";
-                case "Слив": return "Sink";
-                case "ПИД-регуляция": return "PID";
-                case "Воздуходувка": return "Blower";
-                case "Чиллер": return "Chiller";
-                case "Барьер безопасности": return "SafetyBar";
-                case "Подъемник": return "Lifter";
-                case "Панель оператора": return "OP";
-                case "Ряд ванн": return "Row";
-                case "Автооператор": return "AO";
-                case "Тележка": return "Cart";
-                case "Ванна": return "Vann";
-                default: return "Unknown";
-            }
-        }
-
-        #endregion
-
-        #region Вкладка 4: Ввод-Вывод
-
-        private void SetupIOTab(TabPage tab)
-        {
-            var layout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 6,
-                Padding = new Padding(20)
-            };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for(int i=0; i<6; i++) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 45));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            var btnIoSystem = new Button { Text = "1. Выбрать 'Система ввода-вывода.xlsx'", Dock = DockStyle.Fill, Font = new Font(this.Font, FontStyle.Bold) };
-            btnIoSystem.Click += (s, e) => {
-                if (SelectFile("ioSystem", ref ioSystemPath))
-                {
-                    ioModules.Clear();
-                }
+                ("Число панелей оператора", "MaxOP"),
+                ("Число рядов ванн", "MaxRow"),
+                ("Число автооператоров", "MaxAO"),
+                ("Число тележек", "MaxCart"),
+                ("Число ванн", "MaxVann"),
+                ("Число доливов", "MaxDoliv"),
+                ("Число нагревов/охлаждений", "MaxTemperature"),
+                ("Число крышек", "MaxCover"), // Исправлено имя переменной для ясности, хотя в коде будет MaxDoliv по ТЗ? Нет, в ТЗ опечатка была, логичнее MaxCover
+                ("Число жироуловителей", "MaxJr"),
+                ("Число перемешиваний", "MaxMixer"),
+                ("Число выпрямителей", "MaxVip"),
+                ("Число фильтрований", "MaxFiltr"),
+                ("Число дозаторов", "MaxDoser"),
+                ("Число душирований", "MaxShower"),
+                ("Число качалок", "MaxPok"),
+                ("Число сушилок", "MaxDry"),
+                ("Число сливов", "MaxSink"),
+                ("Число ПИД-регуляций", "MaxPID"),
+                ("Число воздуходувок", "MaxBlower"),
+                ("Число чиллеров", "MaxChiller"),
+                ("Число барьеров безопасности", "MaxSafetyBar"),
+                ("Число подъемников", "MaxLifter")
             };
 
-            var btnSpecIo = new Button { Text = "2. Выбрать 'Спецификация.xlsx'", Dock = DockStyle.Fill };
-            btnSpecIo.Click += (s, e) => SelectFile("specIo", ref specPath);
+            int startY = 10;
+            int labelWidth = 250;
+            int inputWidth = 80;
+            int gapY = 35;
+            int cols = 2; // Две колонки для компактности
+            int colWidth = 400;
 
-            var btnVars = new Button { Text = "3. Выбрать 'Список переменных...xlsx'", Dock = DockStyle.Fill };
-            btnVars.Click += (s, e) => SelectFile("vars", ref variablesPath);
-
-            var btnGenIo = new Button { Text = "Сгенерировать SCL (Ввод-Вывод)", Dock = DockStyle.Fill, Font = new Font(this.Font, FontStyle.Bold), BackColor = Color.LightGreen };
-            btnGenIo.Click += (s, e) => GenerateIOCode();
-
-            var lblStatus = new Label { Text = "Файлы не выбраны", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
-            lblStatus.Name = "lblIOStatus";
-
-            layout.Controls.Add(btnIoSystem, 0, 0);
-            layout.Controls.Add(btnSpecIo, 0, 1);
-            layout.Controls.Add(btnVars, 0, 2);
-            layout.Controls.Add(btnGenIo, 0, 3);
-            layout.Controls.Add(lblStatus, 0, 4);
-            tab.Controls.Add(layout);
-        }
-
-        private bool SelectFile(string type, ref string pathVar)
-        {
-            using (var dlg = new OpenFileDialog())
+            foreach (var item in inputsConfig)
             {
-                dlg.Filter = "Excel Files|*.xlsx";
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    pathVar = dlg.FileName;
-                    UpdateStatusLabel(type, Path.GetFileName(pathVar));
-                    return true;
-                }
-            }
-            return false;
-        }
+                // Определяем позицию (две колонки)
+                int index = countInputs.Count;
+                int col = index % cols;
+                int row = index / cols;
 
-        private void UpdateStatusLabel(string type, string fileName)
-        {
-            foreach (TabPage tab in ((TabControl)this.Controls[0]).TabPages)
-            {
-                foreach (Control ctrl in tab.Controls)
-                {
-                    if (ctrl is TableLayoutPanel tlp)
-                    {
-                        foreach (Control c in tlp.Controls)
-                        {
-                            if (c is Label lblFound && lblFound.Name == $"lbl{type}Status")
-                            {
-                                lblFound.Text = $"Выбран: {fileName}";
-                                lblFound.ForeColor = Color.Green;
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                int x = 10 + col * colWidth;
+                int y = startY + row * gapY;
 
-        private void GenerateIOCode()
-        {
-            if (!File.Exists(ioSystemPath) || !File.Exists(specPath) || !File.Exists(variablesPath))
-            {
-                MessageBox.Show("Не все файлы выбраны! Пожалуйста, выберите все три файла.");
-                return;
-            }
+                // Метка
+                Label lbl = new Label();
+                lbl.Text = item.Item1 + ":";
+                lbl.Location = new Point(x, y);
+                lbl.Size = new Size(labelWidth, 25);
+                lbl.TextAlign = ContentAlignment.MiddleRight;
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            try
-            {
-                var variablesMap = ReadVariablesFile(variablesPath);
-                var specMap = ReadSpecFile(specPath);
+                // Поле ввода
+                NumericUpDown nud = new NumericUpDown();
+                nud.Location = new Point(x + labelWidth + 10, y);
+                nud.Size = new Size(inputWidth, 25);
+                nud.Minimum = 0;
+                nud.Maximum = 1000;
+                nud.Value = 0;
                 
-                var sb = new StringBuilder();
-                ReadAndGenerateIO(ioSystemPath, variablesMap, specMap, sb);
+                // Сохраняем ссылку на поле и его суффикс для генерации
+                nud.Tag = item.Item2; 
+                countInputs.Add(nud);
 
-                if (sb.Length == 0)
+                panelCounts.Controls.Add(lbl);
+                panelCounts.Controls.Add(nud);
+            }
+
+            // Устанавливаем размер панели прокрутки внутри, чтобы скролл работал корректно
+            int totalRows = (inputsConfig.Length + cols - 1) / cols;
+            panelCounts.AutoScrollMinSize = new Size(0, startY + totalRows * gapY);
+        }
+
+        // ========== ЗАПОЛНЯЕМ СПИСОК УСТРОЙСТВ ==========
+        private void InitializeDevices()
+        {
+            devices = new List<Device>();
+            // Маппинг строго по заданию:
+            // Doliv: Type=M(12), Dev=N(13)
+            // Tmpr: Type=O(14), Dev=P(15)
+            // ... и так далее через одну колонку
+            
+            devices.Add(new Device("Doliv", "Долив", 12, 13));      // M, N
+            devices.Add(new Device("Tmpr", "Температура", 14, 15)); // O, P
+            devices.Add(new Device("Cover", "Крышка", 16, 17));     // Q, R
+            devices.Add(new Device("Jr", "Жироуловитель", 18, 19)); // S, T
+            devices.Add(new Device("Mixer", "Перемешивание", 20, 21)); // U, V
+            devices.Add(new Device("Vip", "Выпрямитель", 22, 23));  // W, X
+            devices.Add(new Device("Filtr", "Фильтрование", 24, 25)); // Y, Z
+            devices.Add(new Device("Doser", "Дозирование", 26, 27)); // AA, AB
+            devices.Add(new Device("Shower", "Душирование", 28, 29)); // AC, AD
+            devices.Add(new Device("Pok", "Качание", 30, 31));      // AE, AF
+            devices.Add(new Device("Dry", "Сушилка", 32, 33));      // AG, AH
+            devices.Add(new Device("SafetyBar", "Барьер безопасности", 34, 35)); // AI, AJ
+            devices.Add(new Device("Sink", "Слив", 36, 37));        // AK, AL
+            devices.Add(new Device("Blower", "Воздуходувка", 38, 39)); // AM, AN
+            devices.Add(new Device("BarRot", "Вращение барабанов", 40, 41)); // AO, AP
+            devices.Add(new Device("Chiller", "Чиллер", 42, 43));   // AQ, AR
+            devices.Add(new Device("Lifter", "Подъемник", 44, 45)); // AS, AT
+            devices.Add(new Device("Vent", "Вентиляция", 46, 47));  // AU, AV
+        }
+
+        // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
+
+        private void BtnBrowseExcel_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Filter = "Excel файлы (*.xlsx)|*.xlsx|Все файлы (*.*)|*.*";
+                if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show("Данные не найдены или не сгенерированы. Проверьте файлы.");
-                    return;
+                    txtExcelPath.Text = dlg.FileName;
+                    Log($"Выбран файл: {dlg.FileName}");
                 }
+            }
+        }
 
-                SaveToFile("IO_Map_Generated.scl", sb.ToString());
-                MessageBox.Show("SCL код успешно сгенерирован!");
+        private void BtnBrowseTxt_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                dlg.DefaultExt = "txt";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtTxtPath.Text = dlg.FileName;
+                    Log($"Файл будет сохранен: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnBrowseExcel2_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dlg = new OpenFileDialog())
+            {
+                dlg.Filter = "Excel файлы (*.xlsx)|*.xlsx|Все файлы (*.*)|*.*";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtExcelPath2.Text = dlg.FileName;
+                    Log($"Выбран файл (вкладка 2): {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnBrowseTxt2_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                dlg.DefaultExt = "txt";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtTxtPath2.Text = dlg.FileName;
+                    Log($"Файл (вкладка 2) будет сохранен: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnBrowseTxtCounts_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+                dlg.DefaultExt = "txt";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    txtTxtPathCounts.Text = dlg.FileName;
+                    Log($"Файл количеств будет сохранен: {dlg.FileName}");
+                }
+            }
+        }
+
+        private void BtnGenerate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtExcelPath.Text))
+            {
+                MessageBox.Show("Выберите Excel файл!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (string.IsNullOrEmpty(txtTxtPath.Text))
+            {
+                MessageBox.Show("Выберите путь для сохранения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!File.Exists(txtExcelPath.Text))
+            {
+                MessageBox.Show("Excel файл не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (numStartRow.Value > numEndRow.Value)
+            {
+                MessageBox.Show("Начальная строка не может быть больше конечной!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            btnGenerate.Enabled = false;
+            progressBar.Visible = true;
+            Log("Начало генерации (Спецификация)...");
+
+            try
+            {
+                string result = GenerateSCL();
+                File.WriteAllText(txtTxtPath.Text, result, Encoding.UTF8);
+                Log("✅ Генерация успешно завершена!");
+                Log($"📄 Файл сохранен: {txtTxtPath.Text}");
+                
+                if (MessageBox.Show("Открыть полученный файл?", "Готово", 
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", txtTxtPath.Text);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка генерации: {ex.Message}\n{ex.StackTrace}");
+                Log($"❌ Ошибка: {ex.Message}");
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnGenerate.Enabled = true;
+                progressBar.Visible = false;
             }
         }
 
-        private Dictionary<string, string> ReadVariablesFile(string path)
+        private void BtnGenerate2_Click(object sender, EventArgs e)
         {
-            var map = new Dictionary<string, string>();
-            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            MessageBox.Show("Функционал вкладки 'Ввод-вывод' будет добавлен позже.", "Информация", 
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void BtnGenerateCounts_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtTxtPathCounts.Text))
             {
-                while (reader.Read())
+                MessageBox.Show("Выберите путь для сохранения файла!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("// Количество устройств");
+                sb.AppendLine($"// Дата генерации: {DateTime.Now}");
+                sb.AppendLine();
+                sb.AppendLine("\"Options\".Count := RECORD");
+
+                foreach (var nud in countInputs)
                 {
-                    for (int i = 0; i < reader.FieldCount - 1; i++)
+                    string suffix = nud.Tag.ToString();
+                    int value = (int)nud.Value;
+                    // Формат: "Options".Count.MaxOP := 5;
+                    sb.AppendLine($"\"Options\".Count.{suffix} := {value};");
+                }
+
+                sb.AppendLine("END_RECORD;");
+
+                File.WriteAllText(txtTxtPathCounts.Text, sb.ToString(), Encoding.UTF8);
+                Log($"✅ Файл количеств сохранен: {txtTxtPathCounts.Text}");
+                
+                if (MessageBox.Show("Открыть файл с количествами?", "Готово", 
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", txtTxtPathCounts.Text);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при генерации количеств: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ========== ЛОГИКА ГЕНЕРАЦИИ SCL ==========
+        private string GenerateSCL()
+        {
+            StringBuilder result = new StringBuilder();
+            int startRow = (int)numStartRow.Value;
+            int endRow = (int)numEndRow.Value;
+
+            result.AppendLine("// SCL код сгенерирован автоматически");
+            result.AppendLine($"// Дата генерации: {DateTime.Now}");
+            result.AppendLine($"// Диапазон строк: {startRow} - {endRow}");
+            result.AppendLine($"// Файл источник: {Path.GetFileName(txtExcelPath.Text)}");
+            result.AppendLine();
+
+            using (FileStream fs = new FileStream(txtExcelPath.Text, FileMode.Open, FileAccess.Read))
+            using (XSSFWorkbook workbook = new XSSFWorkbook(fs))
+            {
+                ISheet sheet = workbook.GetSheetAt(0);
+                Log($"📋 Работаем с листом: {sheet.SheetName}");
+
+                int totalRecords = 0;
+
+                foreach (var device in devices)
+                {
+                    result.AppendLine($"// {device.Comment}");
+                    
+                    for (int rowNum = startRow; rowNum <= endRow; rowNum++)
                     {
-                        var col1 = reader.GetValue(i)?.ToString()?.Trim();
-                        var col2 = reader.GetValue(i + 1)?.ToString()?.Trim();
+                        IRow row = sheet.GetRow(rowNum);
+                        if (row == null) continue;
 
-                        if (!string.IsNullOrEmpty(col1) && !string.IsNullOrEmpty(col2) && 
-                            col1 != "DI" && col1 != "DO" && col1 != "AI" && col1 != "AO" &&
-                            col1 != "Переменная" && col1 != "no data")
-                        {
-                            if (!map.ContainsKey(col1))
-                                map[col1] = col2;
-                        }
+                        // Столбец A (индекс 0) - место (CfgPlace)
+                        CellValueInfo placeInfo = GetCellValueInfo(row.GetCell(0));
+                        if (string.IsNullOrEmpty(placeInfo.Value)) continue;
+
+                        // Столбец типа (FirstCol)
+                        CellValueInfo typeInfo = GetCellValueInfo(row.GetCell(device.FirstCol));
+                        
+                        // Столбец индекса/имени (SecondCol)
+                        CellValueInfo nameInfo = GetCellValueInfo(row.GetCell(device.SecondCol));
+
+                        if (string.IsNullOrEmpty(typeInfo.Value) || string.IsNullOrEmpty(nameInfo.Value))
+                            continue;
+
+                        string placeFormatted = placeInfo.IsNumeric ? placeInfo.Value : $"\"{placeInfo.Value}\"";
+                        string typeFormatted = typeInfo.IsNumeric ? typeInfo.Value : $"\"{typeInfo.Value}\"";
+                        string nameFormatted = nameInfo.IsNumeric ? nameInfo.Value : $"\"{nameInfo.Value}\"";
+
+                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgPlace := {placeFormatted};");
+                        result.AppendLine($"\"{device.Name}\".Dev[{nameFormatted}].CfgType := {typeFormatted};");
+
+                        totalRecords++;
                     }
+                    result.AppendLine();
                 }
+                Log($"✅ Обработано записей: {totalRecords}");
             }
-            return map;
+
+            return result.ToString();
         }
 
-        private Dictionary<int, Dictionary<string, int>> ReadSpecFile(string path)
+        // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
+        private int CountRecords(string text)
         {
-            var map = new Dictionary<int, Dictionary<string, int>>();
-            
-            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            string[] lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            int count = 0;
+            foreach (string line in lines)
             {
-                while (reader.Read())
-                {
-                    if (reader.Name == "Config_Line")
-                    {
-                        // Поиск заголовка
-                        int headerRowIdx = -1;
-                        for (int k = 0; k < 10; k++)
-                        {
-                            if (!reader.Read()) break;
-                            var firstCell = reader.GetValue(0)?.ToString()?.Trim();
-                            if (firstCell == "№ п/п" || firstCell == "№ п/п ") 
-                            {
-                                headerRowIdx = k;
-                                break;
-                            }
-                        }
-
-                        if (headerRowIdx == -1) break;
-
-                        var headers = new Dictionary<string, int>();
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            var h = reader.GetValue(i)?.ToString()?.Trim() ?? "";
-                            if (!string.IsNullOrEmpty(h) && !headers.ContainsKey(h)) headers[h] = i;
-                        }
-
-                        while (reader.Read())
-                        {
-                            var posIdVal = reader.GetValue(0);
-                            if (posIdVal == null || !double.TryParse(posIdVal.ToString(), out double posIdDouble)) continue;
-                            int posId = (int)posIdDouble;
-
-                            var devices = new Dictionary<string, int>();
-                            foreach (var devType in deviceTypes)
-                            {
-                                if (headers.ContainsKey(devType))
-                                {
-                                    var val = reader.GetValue(headers[devType]);
-                                    if (val != null && double.TryParse(val.ToString(), out double idxDouble) && idxDouble > 0)
-                                    {
-                                        devices[devType] = (int)idxDouble;
-                                    }
-                                }
-                            }
-                            if (devices.Count > 0)
-                                map[posId] = devices;
-                        }
-                        break;
-                    }
-                }
+                if (line.Contains(".CfgPlace :=")) count++;
             }
-            return map;
+            return count;
         }
 
-        private void ReadAndGenerateIO(string path, Dictionary<string, string> varMap, Dictionary<int, Dictionary<string, int>> specMap, StringBuilder sb)
+        private CellValueInfo GetCellValueInfo(ICell cell)
         {
-            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            if (cell == null) return new CellValueInfo("", false);
+
+            try
             {
-                while (reader.Read())
+                switch (cell.CellType)
                 {
-                    if (reader.Name == "ШС")
-                    {
-                        // Поиск заголовка
-                        int headerRowIdx = -1;
-                        for (int k = 0; k < 10; k++)
+                    case CellType.String:
+                        string text = cell.StringCellValue;
+                        return new CellValueInfo(text == null ? "" : text.Trim(), false);
+                    case CellType.Numeric:
+                        double val = cell.NumericCellValue;
+                        string strVal = (val == Math.Floor(val)) ? val.ToString("0") : val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        return new CellValueInfo(strVal, true);
+                    case CellType.Boolean:
+                        return new CellValueInfo(cell.BooleanCellValue.ToString(), false);
+                    case CellType.Formula:
+                        try
                         {
-                            if (!reader.Read()) break;
-                            var firstCell = reader.GetValue(0)?.ToString()?.Trim();
-                            if (firstCell == "шкаф" || firstCell == "шкаф ") 
+                            switch (cell.CachedFormulaResultType)
                             {
-                                headerRowIdx = k;
-                                break;
+                                case CellType.String:
+                                    return new CellValueInfo(cell.StringCellValue?.Trim() ?? "", false);
+                                case CellType.Numeric:
+                                    double fVal = cell.NumericCellValue;
+                                    string fStr = (fVal == Math.Floor(fVal)) ? fVal.ToString("0") : fVal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                    return new CellValueInfo(fStr, true);
+                                case CellType.Boolean:
+                                    return new CellValueInfo(cell.BooleanCellValue.ToString(), false);
+                                default:
+                                    return new CellValueInfo("", false);
                             }
                         }
-
-                        if (headerRowIdx == -1) break;
-
-                        var colIndices = new Dictionary<string, int>();
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            var rawHeader = reader.GetValue(i)?.ToString() ?? "";
-                            var cleanHeader = rawHeader.Replace("\n", "").Replace("\r", "").Trim();
-                            
-                            if (cleanHeader.Contains("тип")) colIndices["type"] = i;
-                            else if (cleanHeader.Contains("адрес")) colIndices["address"] = i;
-                            else if (cleanHeader.Contains("обозн")) colIndices["label"] = i;
-                            else if (cleanHeader.Contains("№ вх")) colIndices["signalNum"] = i;
-                            else if (cleanHeader.Contains("Устройство")) colIndices["device"] = i;
-                            else if (cleanHeader.Contains("Наименование сигнала")) colIndices["signalName"] = i;
-                            else if (cleanHeader.Contains("Тех. поз")) colIndices["techPos"] = i;
-                        }
-
-                        if (!colIndices.ContainsKey("type") || !colIndices.ContainsKey("address"))
-                        {
-                            sb.AppendLine("// Ошибка: Не найдены обязательные колонки");
-                            return;
-                        }
-
-                        var modulesDict = new Dictionary<string, IoModuleInfo>();
-                        int currentModuleId = 0;
-
-                        while (reader.Read())
-                        {
-                            string GetVal(string key)
-                            {
-                                if (!colIndices.ContainsKey(key)) return "";
-                                var idx = colIndices[key];
-                                if (idx >= reader.FieldCount) return "";
-                                return reader.GetValue(idx)?.ToString()?.Trim() ?? "";
-                            }
-
-                            int GetIntVal(string key)
-                            {
-                                var s = GetVal(key);
-                                return double.TryParse(s, out var res) ? (int)res : 0;
-                            }
-
-                            string typeRaw = GetVal("type").Trim();
-                            string type = typeRaw.StartsWith("DI") ? "DI" : (typeRaw.StartsWith("DO") ? "DO" : "");
-                            
-                            if (string.IsNullOrEmpty(type)) continue;
-
-                            string address = GetVal("address");
-                            string label = GetVal("label");
-                            int signalNum = GetIntVal("signalNum");
-                            string deviceName = GetVal("device");
-                            string signalName = GetVal("signalName");
-                            int techPos = GetIntVal("techPos");
-
-                            if (string.IsNullOrEmpty(address) || signalNum == 0) continue;
-                            if (deviceName == "Резерв" || string.IsNullOrEmpty(signalName) || signalName == "no data") continue;
-
-                            string moduleKey = $"{type}_{address}_{label}";
-                            
-                            if (!modulesDict.ContainsKey(moduleKey))
-                            {
-                                currentModuleId++;
-                                modulesDict[moduleKey] = new IoModuleInfo
-                                {
-                                    Id = currentModuleId,
-                                    Type = type,
-                                    Address = address,
-                                    Label = label,
-                                    Signals = new List<IoSignalInfo>(),
-                                };
-                            }
-
-                            if (!varMap.ContainsKey(signalName)) continue;
-                            
-                            int devIndex = 0;
-                            if (specMap.ContainsKey(techPos) && specMap[techPos].ContainsKey(deviceName))
-                            {
-                                devIndex = specMap[techPos][deviceName];
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            var signalInfo = new IoSignalInfo
-                            {
-                                SignalNumber = signalNum,
-                                DeviceRu = deviceName,
-                                SignalNameRu = signalName,
-                                TechPos = techPos,
-                                VarNameEn = varMap[signalName],
-                                DevIndex = devIndex
-                            };
-                            
-                            modulesDict[moduleKey].Signals.Add(signalInfo);
-                        }
-
-                        // Генерация
-                        foreach (var mod in modulesDict.Values.OrderBy(m => m.Id))
-                        {
-                            var sortedSignals = mod.Signals.OrderBy(s => s.SignalNumber).ToList();
-                            if (sortedSignals.Count == 0) continue;
-
-                            string regionName = mod.Type == "DO" ? "MapDout" : "MapDin";
-                            string maskVar = "#dwModuleBitMask";
-                            string bitVar = "#xBit";
-
-                            sb.AppendLine($"REGION Module {mod.Id}");
-                            sb.AppendLine($"// {mod.Label}. Адрес {mod.Address}");
-                            sb.AppendLine($"{maskVar} := 0;");
-
-                            foreach (var sig in sortedSignals)
-                            {
-                                string engDev = GetEngName(sig.DeviceRu);
-                                sb.AppendLine($"{bitVar}.b{sig.SignalNumber} := \"{engDev}\".Dev[{sig.DevIndex}].{sig.VarNameEn};");
-                            }
-
-                            foreach (var sig in sortedSignals)
-                            {
-                                sb.AppendLine($"{maskVar} := {maskVar} OR {bitVar}.b{sig.SignalNumber};");
-                            }
-
-                            sb.AppendLine($"\"{regionName}\".Module[{mod.Id}].BitMask := {maskVar};");
-                            sb.AppendLine("END_REGION");
-                            sb.AppendLine();
-                        }
-
-                        break;
-                    }
+                        catch { return new CellValueInfo("", false); }
+                    default:
+                        return new CellValueInfo("", false);
                 }
+            }
+            catch
+            {
+                return new CellValueInfo("", false);
             }
         }
 
-        #endregion
-
-        private void ShowOutput(string txtName, string text)
+        private void Log(string message)
         {
-            var txt = this.Controls.Find(txtName, true).FirstOrDefault() as TextBox;
-            if (txt != null) txt.Text = text;
+            if (rtbLog.InvokeRequired)
+            {
+                rtbLog.Invoke(new Action<string>(Log), message);
+            }
+            else
+            {
+                rtbLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
+                rtbLog.ScrollToCaret();
+                lblStatus.Text = message;
+            }
         }
 
-        private void SaveToFile(string fileName, string content)
+        // ========== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ ==========
+        class Device
         {
-            using (var dlg = new SaveFileDialog())
+            public string Name { get; set; }
+            public string Comment { get; set; }
+            public int FirstCol { get; set; }  // Колонка типа (M, O, ...)
+            public int SecondCol { get; set; } // Колонка индекса (N, P, ...)
+
+            public Device(string name, string comment, int firstCol, int secondCol)
             {
-                dlg.FileName = fileName;
-                dlg.Filter = "Text Files|*.txt;*.scl|All Files|*.*";
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    File.WriteAllText(dlg.FileName, content, Encoding.UTF8);
-                }
+                Name = name;
+                Comment = comment;
+                FirstCol = firstCol;
+                SecondCol = secondCol;
+            }
+        }
+
+        class CellValueInfo
+        {
+            public string Value { get; set; }
+            public bool IsNumeric { get; set; }
+
+            public CellValueInfo(string value, bool isNumeric)
+            {
+                Value = value;
+                IsNumeric = isNumeric;
             }
         }
     }
