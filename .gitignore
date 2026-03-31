@@ -1,54 +1,46 @@
 ```
-# Python
-__pycache__/
+# Compiled Python files
 *.pyc
-*.pyo
-*.pyd
-.Python
+__pycache__/
+
+# Virtual environments
 venv/
 .venv/
 .env
 .env.local
-.env.*
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
 
 # Logs
 *.log
+
+# Editors
+.vscode/
+.idea/
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Temporary files
-*.tmp
-*.swp
-*.swo
+# Build artifacts
+dist/
+build/
+*.egg-info/
 
 # Coverage reports
 .coverage
-htmlcov/
 coverage/
+htmlcov/
 
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# MyPy cache
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pytest cache
+# Testing
 .pytest_cache/
+.mypy_cache/
 
-# Excel/Office temp files
-~$*.xlsx
-~$*.xls
-*.tmp
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
 ```
