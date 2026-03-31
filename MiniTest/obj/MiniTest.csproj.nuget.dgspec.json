@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj": {}
+    "C:\\Users\\Nick\\Desktop\\CSharp\\MiniTest\\MiniTest.csproj": {}
   },
   "projects": {
-    "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj": {
+    "C:\\Users\\Nick\\Desktop\\CSharp\\MiniTest\\MiniTest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj",
+        "projectUniqueName": "C:\\Users\\Nick\\Desktop\\CSharp\\MiniTest\\MiniTest.csproj",
         "projectName": "MiniTest",
-        "projectPath": "C:\\MyOwnRepo\\CSharp\\MiniTest\\MiniTest.csproj",
+        "projectPath": "C:\\Users\\Nick\\Desktop\\CSharp\\MiniTest\\MiniTest.csproj",
         "packagesPath": "C:\\Users\\Nick\\.nuget\\packages\\",
-        "outputPath": "C:\\MyOwnRepo\\CSharp\\MiniTest\\obj\\",
+        "outputPath": "C:\\Users\\Nick\\Desktop\\CSharp\\MiniTest\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Nick\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -66,10 +66,6 @@
               "version": "[6.0.36, 6.0.36]"
             },
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[6.0.36, 6.0.36]"
-            },
-            {
               "name": "Microsoft.NETCore.App.Host.win-x64",
               "version": "[6.0.36, 6.0.36]"
             },
@@ -78,15 +74,7 @@
               "version": "[6.0.36, 6.0.36]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[6.0.36, 6.0.36]"
-            },
-            {
               "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[6.0.36, 6.0.36]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
               "version": "[6.0.36, 6.0.36]"
             }
           ],
@@ -99,11 +87,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301\\RuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "win10-x64": {
-          "#import": []
         }
       }
     }
