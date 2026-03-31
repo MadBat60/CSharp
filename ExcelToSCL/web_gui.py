@@ -543,7 +543,15 @@ def generate():
         })
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        error_details = traceback.format_exc()
+        print("❌ ПОЛНАЯ ОШИБКА:")
+        print(error_details)
+        print("❌ КРАТКАЯ ОШИБКА:", str(e))
+        return jsonify({
+            'error': str(e),
+            'details': error_details
+        }), 500
 
 @app.route('/download/<filename>')
 def download(filename):
