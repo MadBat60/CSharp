@@ -1,0 +1,499 @@
+// Сгенерировано из Система ввода-вывода.xlsx
+// Дата: 31.03.2026 11:47
+
+// Установленное количество устройств
+    "Options".Count.MaxOP := 0;
+    "Options".Count.MaxRow := 0;
+    "Options".Count.MaxAO := 0;
+    "Options".Count.MaxCart := 2;
+    "Options".Count.MaxVann := 0;
+    "Options".Count.MaxDoliv := 12;
+    "Options".Count.MaxTemperature := 10;
+    "Options".Count.MaxCover := 17;
+    "Options".Count.MaxJr := 1;
+    "Options".Count.MaxMixer := 29;
+    "Options".Count.MaxVip := 0;
+    "Options".Count.MaxFiltr := 3;
+    "Options".Count.MaxDoser := 0;
+    "Options".Count.MaxShower := 0;
+    "Options".Count.MaxPok := 0;
+    "Options".Count.MaxDry := 0;
+    "Options".Count.MaxSink := 0;
+    "Options".Count.MaxPID := 0;
+    "Options".Count.MaxBlower := 0;
+    "Options".Count.MaxChiller := 0;
+    "Options".Count.MaxSafetyBar := 0;
+    "Options".Count.MaxLifter := 0;;
+
+REGION Doliv
+(* Доливы
+CfgPlace        номер ванны
+CfgType         тип
+CfgCascadeVann  для каскадных доливов указываем номер второй ванны каскада
+CfgAutoLevel    автоматическое получение уровня из ванны по Place
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxDoliv DO
+        "Doliv".Dev[#iCnt].CfgAutoLevel := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+
+    "Doliv".Dev[1].CfgPlace := 2;
+    "Doliv".Dev[1].CfgType := 1;
+
+    "Doliv".Dev[2].CfgPlace := 4;
+    "Doliv".Dev[2].CfgType := 1;
+
+    "Doliv".Dev[3].CfgPlace := 7;
+    "Doliv".Dev[3].CfgType := 1;
+
+    "Doliv".Dev[4].CfgPlace := 10;
+    "Doliv".Dev[4].CfgType := 1;
+
+    "Doliv".Dev[5].CfgPlace := 11;
+    "Doliv".Dev[5].CfgType := 1;
+
+    "Doliv".Dev[6].CfgPlace := 16;
+    "Doliv".Dev[6].CfgType := 1;
+    "Doliv".Dev[6].CfgCascadeVann := 19;
+
+    "Doliv".Dev[7].CfgPlace := 21;
+    "Doliv".Dev[7].CfgType := 1;
+    "Doliv".Dev[7].CfgCascadeVann := 24;
+
+    "Doliv".Dev[8].CfgPlace := 23;
+    "Doliv".Dev[8].CfgType := 1;
+    "Doliv".Dev[8].CfgCascadeVann := 12;
+
+    "Doliv".Dev[9].CfgPlace := 26;
+    "Doliv".Dev[9].CfgType := 1;
+    "Doliv".Dev[9].CfgCascadeVann := 29;
+
+    "Doliv".Dev[10].CfgPlace := 27;
+    "Doliv".Dev[10].CfgType := 1;
+    "Doliv".Dev[10].CfgCascadeVann := 30;
+
+    "Doliv".Dev[11].CfgPlace := 29;
+    "Doliv".Dev[11].CfgType := 1;
+    "Doliv".Dev[11].CfgCascadeVann := 32;
+
+    "Doliv".Dev[12].CfgPlace := 34;
+    "Doliv".Dev[12].CfgType := 1;
+    "Doliv".Dev[12].CfgCascadeVann := 37;
+
+END_REGION
+
+REGION Temperature
+(* Нагревы и охлаждения
+CfgPlace  номер ванны
+CfgType   тип
+*)
+
+    "Tmpr".Dev[1].CfgPlace := 2;
+    "Tmpr".Dev[1].CfgType := 1;
+
+    "Tmpr".Dev[2].CfgPlace := 3;
+    "Tmpr".Dev[2].CfgType := 1;
+
+    "Tmpr".Dev[9].CfgPlace := 8;
+    "Tmpr".Dev[9].CfgType := 1;
+
+    "Tmpr".Dev[10].CfgPlace := 9;
+    "Tmpr".Dev[10].CfgType := 1;
+
+    "Tmpr".Dev[3].CfgPlace := 20;
+    "Tmpr".Dev[3].CfgType := 1;
+
+    "Tmpr".Dev[4].CfgPlace := 21;
+    "Tmpr".Dev[4].CfgType := 1;
+
+    "Tmpr".Dev[5].CfgPlace := 27;
+    "Tmpr".Dev[5].CfgType := 1;
+
+    "Tmpr".Dev[6].CfgPlace := 31;
+    "Tmpr".Dev[6].CfgType := 1;
+
+    "Tmpr".Dev[7].CfgPlace := 33;
+    "Tmpr".Dev[7].CfgType := 1;
+
+    "Tmpr".Dev[8].CfgPlace := 34;
+    "Tmpr".Dev[8].CfgType := 1;
+
+END_REGION
+
+REGION Cover
+(* Крышки ванн
+CfgPlace  номер ванны
+CfgType   тип
+CfgPnevmo крышки работают на пневматике
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxCover DO
+        "Cover".Dev[#iCnt].CfgPnevmo := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+
+    "Cover".Dev[1].CfgPlace := 2;
+    "Cover".Dev[1].CfgType := 1;
+
+    "Cover".Dev[2].CfgPlace := 3;
+    "Cover".Dev[2].CfgType := 1;
+
+    "Cover".Dev[3].CfgPlace := 5;
+    "Cover".Dev[3].CfgType := 1;
+
+    "Cover".Dev[4].CfgPlace := 8;
+    "Cover".Dev[4].CfgType := 1;
+
+    "Cover".Dev[5].CfgPlace := 9;
+    "Cover".Dev[5].CfgType := 1;
+
+    "Cover".Dev[6].CfgPlace := 13;
+    "Cover".Dev[6].CfgType := 1;
+
+    "Cover".Dev[7].CfgPlace := 17;
+    "Cover".Dev[7].CfgType := 1;
+
+    "Cover".Dev[8].CfgPlace := 18;
+    "Cover".Dev[8].CfgType := 1;
+
+    "Cover".Dev[9].CfgPlace := 19;
+    "Cover".Dev[9].CfgType := 1;
+
+    "Cover".Dev[10].CfgPlace := 20;
+    "Cover".Dev[10].CfgType := 1;
+
+    "Cover".Dev[11].CfgPlace := 21;
+    "Cover".Dev[11].CfgType := 1;
+
+    "Cover".Dev[12].CfgPlace := 25;
+    "Cover".Dev[12].CfgType := 1;
+
+    "Cover".Dev[13].CfgPlace := 27;
+    "Cover".Dev[13].CfgType := 1;
+
+    "Cover".Dev[14].CfgPlace := 31;
+    "Cover".Dev[14].CfgType := 1;
+
+    "Cover".Dev[15].CfgPlace := 32;
+    "Cover".Dev[15].CfgType := 1;
+
+    "Cover".Dev[16].CfgPlace := 33;
+    "Cover".Dev[16].CfgType := 1;
+
+    "Cover".Dev[17].CfgPlace := 34;
+    "Cover".Dev[17].CfgType := 1;
+
+END_REGION
+
+REGION Jr
+(* Жироуловители
+CfgPlace     номер ванны
+CfgType      тип
+CfgAutoLevel автоматическое получение уровня
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxJr DO
+        "Jr".Dev[#iCnt].CfgAutoLevel := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+
+    "Jr".Dev[1].CfgPlace := 2;
+    "Jr".Dev[1].CfgType := 1;
+
+END_REGION
+
+REGION Mixer
+(* Мешалки, барботажи
+CfgPlace  номер ванны
+CfgType   тип
+CfgPnevmo по умолчанию перемешивание воздухом
+*)
+    #iCnt := 1;
+    WHILE #iCnt <= "Options".Count.MaxMixer DO
+        "Mixer".Dev[#iCnt].CfgPnevmo := TRUE;
+        #iCnt := #iCnt + 1;
+    END_WHILE;
+
+    "Mixer".Dev[1].CfgPlace := 2;
+    "Mixer".Dev[1].CfgType := 1;
+
+    "Mixer".Dev[2].CfgPlace := 3;
+    "Mixer".Dev[2].CfgType := 1;
+
+    "Mixer".Dev[3].CfgPlace := 4;
+    "Mixer".Dev[3].CfgType := 1;
+
+    "Mixer".Dev[4].CfgPlace := 5;
+    "Mixer".Dev[4].CfgType := 1;
+
+    "Mixer".Dev[5].CfgPlace := 6;
+    "Mixer".Dev[5].CfgType := 1;
+
+    "Mixer".Dev[6].CfgPlace := 7;
+    "Mixer".Dev[6].CfgType := 1;
+
+    "Mixer".Dev[7].CfgPlace := 8;
+    "Mixer".Dev[7].CfgType := 1;
+
+    "Mixer".Dev[8].CfgPlace := 9;
+    "Mixer".Dev[8].CfgType := 1;
+
+    "Mixer".Dev[9].CfgPlace := 10;
+    "Mixer".Dev[9].CfgType := 1;
+
+    "Mixer".Dev[10].CfgPlace := 11;
+    "Mixer".Dev[10].CfgType := 1;
+
+    "Mixer".Dev[11].CfgPlace := 13;
+    "Mixer".Dev[11].CfgType := 1;
+
+    "Mixer".Dev[12].CfgPlace := 14;
+    "Mixer".Dev[12].CfgType := 1;
+
+    "Mixer".Dev[13].CfgPlace := 15;
+    "Mixer".Dev[13].CfgType := 1;
+
+    "Mixer".Dev[14].CfgPlace := 16;
+    "Mixer".Dev[14].CfgType := 1;
+
+    "Mixer".Dev[15].CfgPlace := 17;
+    "Mixer".Dev[15].CfgType := 1;
+
+    "Mixer".Dev[16].CfgPlace := 18;
+    "Mixer".Dev[16].CfgType := 1;
+
+    "Mixer".Dev[17].CfgPlace := 19;
+    "Mixer".Dev[17].CfgType := 1;
+
+    "Mixer".Dev[18].CfgPlace := 20;
+    "Mixer".Dev[18].CfgType := 1;
+
+    "Mixer".Dev[19].CfgPlace := 21;
+    "Mixer".Dev[19].CfgType := 1;
+
+    "Mixer".Dev[20].CfgPlace := 23;
+    "Mixer".Dev[20].CfgType := 1;
+
+    "Mixer".Dev[21].CfgPlace := 25;
+    "Mixer".Dev[21].CfgType := 1;
+
+    "Mixer".Dev[22].CfgPlace := 26;
+    "Mixer".Dev[22].CfgType := 1;
+
+    "Mixer".Dev[23].CfgPlace := 28;
+    "Mixer".Dev[23].CfgType := 1;
+
+    "Mixer".Dev[24].CfgPlace := 29;
+    "Mixer".Dev[24].CfgType := 1;
+
+    "Mixer".Dev[25].CfgPlace := 30;
+    "Mixer".Dev[25].CfgType := 1;
+
+    "Mixer".Dev[26].CfgPlace := 31;
+    "Mixer".Dev[26].CfgType := 1;
+
+    "Mixer".Dev[27].CfgPlace := 32;
+    "Mixer".Dev[27].CfgType := 1;
+
+    "Mixer".Dev[28].CfgPlace := 33;
+    "Mixer".Dev[28].CfgType := 1;
+
+    "Mixer".Dev[29].CfgPlace := 34;
+    "Mixer".Dev[29].CfgType := 1;
+
+END_REGION
+
+REGION Filtr
+(* Фильтровалки
+CfgPlace  номер ванны
+CfgType   тип
+*)
+
+    "Filtr".Dev[1].CfgPlace := 8;
+    "Filtr".Dev[1].CfgType := 1;
+
+    "Filtr".Dev[2].CfgPlace := 9;
+    "Filtr".Dev[2].CfgType := 1;
+
+    "Filtr".Dev[3].CfgPlace := 13;
+    "Filtr".Dev[3].CfgType := 1;
+
+END_REGION
+
+// Пример для AI
+REGION А22
+    // А22. Адрес 141
+END_REGION
+
+REGION А23
+    // А23. Адрес 142
+END_REGION
+
+
+// Пример для DO
+REGION А14
+    // А14. Адрес 181
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    #xBit.b1 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b2 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b3 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b4 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b5 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b6 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b7 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b8 := "Tmpr".Dev[PLACE].qStage[1];
+
+    #xBit.b11 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b12 := "Filtr".Dev[PLACE].qFiltr;
+    #xBit.b13 := "Filtr".Dev[PLACE].qFiltr;
+    #xBit.b14 := "Filtr".Dev[PLACE].qFiltr;
+    #xBit.b24 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b25 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b26 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b27 := "Doliv".Dev[PLACE].qDoliv;
+
+    #xBit.b28 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b29 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b30 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b31 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b32 := "Doliv".Dev[PLACE].qDoliv;
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А15
+    // А15. Адрес 182
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    #xBit.b1 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b2 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b4 := "Doliv".Dev[PLACE].qDoliv;
+    #xBit.b5 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b6 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b7 := "Tmpr".Dev[PLACE].qStage[1];
+    #xBit.b8 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b9 := "Mixer".Dev[PLACE].qBarb;
+
+    #xBit.b10 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b11 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b12 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b13 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b14 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b15 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b16 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b17 := "Mixer".Dev[PLACE].qBarb;
+
+    #xBit.b18 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b19 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b20 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b21 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b22 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b23 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b24 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b25 := "Mixer".Dev[PLACE].qBarb;
+
+    #xBit.b26 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b27 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b28 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b29 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b30 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b31 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b32 := "Mixer".Dev[PLACE].qBarb;
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А16
+    // А16. Адрес 183
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    #xBit.b1 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b2 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b3 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b4 := "Mixer".Dev[PLACE].qBarb;
+    #xBit.b7 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b8 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b9 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b10 := "Cover".Dev[PLACE].qOpen;
+
+    #xBit.b11 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b12 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b13 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b14 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b15 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b16 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b17 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b18 := "Cover".Dev[PLACE].qOpen;
+
+    #xBit.b19 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b20 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b21 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b22 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b23 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b24 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b25 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b26 := "Cover".Dev[PLACE].qOpen;
+
+    #xBit.b27 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b28 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b29 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b30 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b31 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b32 := "Cover".Dev[PLACE].qOpen;
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А17
+    // А17. Адрес 184
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    #xBit.b1 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b2 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b3 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b4 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b5 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b6 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b7 := "Cover".Dev[PLACE].qOpen;
+    #xBit.b8 := "Cover".Dev[PLACE].qOpen;
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А4.10
+    // А4.10. Адрес #
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А4.5
+    // А4.5. Адрес #
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А4.7
+    // А4.7. Адрес #
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
+
+REGION А4.9
+    // А4.9. Адрес #
+    #dwModuleBitMask := 0;  // обнулим маску выходов
+
+    "MapDout".Module[MODULE_IDX].BitMask := #dwModuleBitMask;
+
+END_REGION
